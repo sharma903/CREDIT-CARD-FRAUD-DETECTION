@@ -86,16 +86,6 @@ const Index = () => {
       <Navbar userName={userName} onLogout={handleLogout} />
 
       <main className="container py-8 space-y-8">
-        {/* Hero */}
-        <section className="space-y-2">
-          <h1 className="font-display text-3xl md:text-4xl font-bold">
-            <span className="text-gradient">AI Fraud Detection</span> Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Real-time machine-learning powered transaction risk analysis.
-          </p>
-        </section>
-
         {/* Top: Card + Form */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-5">
