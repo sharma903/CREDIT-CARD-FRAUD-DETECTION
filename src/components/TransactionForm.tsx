@@ -193,15 +193,15 @@ export function TransactionForm({ onChange, onCvvFocus, onSubmit }: Props) {
           </div>
 
           <div className="sm:col-span-2">
-            <Label>Location</Label>
-            <Select value={location} onValueChange={setLocation}>
-              <SelectTrigger><SelectValue placeholder="Select location" /></SelectTrigger>
-              <SelectContent>
-                {LOCATION_OPTIONS.map((l) => (
-                  <SelectItem key={l} value={l}>{l}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="tx-location">Location</Label>
+            <Input
+              id="tx-location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. Mumbai, India"
+              maxLength={60}
+              required
+            />
           </div>
         </div>
 
