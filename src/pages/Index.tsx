@@ -41,7 +41,7 @@ const Index = () => {
     const merchant = MERCHANTS.find((m) => m.name === data.merchantName);
     if (!merchant) return;
 
-    const ts = new Date();
+    const ts = data.timestamp;
     const recent = transactions.map((t) => t.timestamp);
     const result = analyzeFraud(data.amount, merchant, ts, recent, data.location);
 
@@ -66,7 +66,7 @@ const Index = () => {
       });
     } else {
       toast.success(`Transaction approved · Risk ${tx.riskScore}`, {
-        description: `${tx.merchantName} · $${tx.amount.toLocaleString()}`,
+        description: `${tx.merchantName} · ₹${tx.amount.toLocaleString("en-IN")}`,
       });
     }
   }
