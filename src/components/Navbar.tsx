@@ -18,7 +18,7 @@ export function Navbar({ userName, onLogout }: NavbarProps) {
             alt="SecureGuard logo" 
             width={56} 
             height={56} 
-            className="drop-shadow-[0_0_20px_rgba(59,130,246,0.8)] hue-rotate-[200deg] saturate-[1.8] brightness-110" 
+            className="drop-shadow-[0_0_20px_rgba(59,130,246,0.9)] hue-rotate-[180deg] saturate-[2] brightness-125" 
           />
           <div className="font-display text-3xl font-bold tracking-tight">
             <span className="text-white" style={{ textShadow: "0 0 20px rgba(255, 255, 255, 0.4)" }}>Secure</span>
