@@ -119,14 +119,14 @@ export function analyzeFraud(
     reasons.push(`Medium-risk merchant: ${merchant.category}`);
   }
 
-  // Amount
-  if (amount > 5000) {
+  // Amount (INR)
+  if (amount > 25000) {
     riskScore += 15;
     confidence += 10;
-    reasons.push(`Large amount: $${amount.toLocaleString()}`);
-  } else if (amount > 2000) {
+    reasons.push(`Large amount: ₹${amount.toLocaleString("en-IN")}`);
+  } else if (amount > 10000) {
     riskScore += 7;
-    reasons.push(`Above-average amount: $${amount.toLocaleString()}`);
+    reasons.push(`Above-average amount: ₹${amount.toLocaleString("en-IN")}`);
   }
 
   // Location
