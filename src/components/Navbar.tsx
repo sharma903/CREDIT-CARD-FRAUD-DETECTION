@@ -18,11 +18,11 @@ export function Navbar({ userName, onLogout }: NavbarProps) {
             alt="SecureGuard logo" 
             width={56} 
             height={56} 
-            className="drop-shadow-[0_0_16px_hsl(var(--destructive)/0.7)] hue-rotate-[320deg] saturate-150" 
+            className="drop-shadow-[0_0_20px_rgba(59,130,246,0.8)] hue-rotate-[200deg] saturate-[1.8] brightness-110" 
           />
           <div className="font-display text-3xl font-bold tracking-tight">
-            <span className="text-[#22c55e]" style={{ textShadow: "0 0 20px rgba(34, 197, 94, 0.5)" }}>Secure</span>
-            <span className="text-[#ef4444]">Guard</span>
+            <span className="text-white" style={{ textShadow: "0 0 20px rgba(255, 255, 255, 0.4)" }}>Secure</span>
+            <span className="text-[#3b82f6]" style={{ textShadow: "0 0 20px rgba(59, 130, 246, 0.6)" }}>Guard</span>
           </div>
         </div>
         <div className="flex items-center gap-4">
