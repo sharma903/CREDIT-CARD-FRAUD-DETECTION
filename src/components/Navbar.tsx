@@ -11,10 +11,16 @@ export function Navbar({ userName, onLogout }: NavbarProps) {
   const initial = (userName?.trim()?.[0] ?? "U").toUpperCase();
   return (
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/70 border-b border-border">
-      <div className="container flex items-center justify-between h-20">
-        <div className="flex items-center gap-4">
-          <img src={logo} alt="SecureGuard logo" width={44} height={44} className="drop-shadow-[0_0_12px_hsl(var(--primary)/0.6)]" />
-          <div className="font-display text-2xl font-bold tracking-tight">
+      <div className="container flex items-center justify-between h-24">
+        <div className="flex items-center gap-5">
+          <img 
+            src={logo} 
+            alt="SecureGuard logo" 
+            width={56} 
+            height={56} 
+            className="drop-shadow-[0_0_16px_hsl(var(--destructive)/0.7)] hue-rotate-[320deg] saturate-150" 
+          />
+          <div className="font-display text-3xl font-bold tracking-tight">
             <span className="text-[#22c55e]" style={{ textShadow: "0 0 20px rgba(34, 197, 94, 0.5)" }}>Secure</span>
             <span className="text-[#ef4444]">Guard</span>
           </div>
