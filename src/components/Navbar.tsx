@@ -16,8 +16,8 @@ export function Navbar({ userName, onLogout }: NavbarProps) {
           <img 
             src={logo} 
             alt="SecureGuard logo" 
-            width={36} 
-            height={36} 
+            width={48} 
+            height={48} 
             className="drop-shadow-[0_0_12px_hsl(var(--primary)/0.6)]" 
           />
           <div className="font-display text-3xl font-bold tracking-tight">
