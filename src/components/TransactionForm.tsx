@@ -168,7 +168,7 @@ export function TransactionForm({ onChange, onCvvFocus, onSubmit }: Props) {
           </div>
 
           <div className="sm:col-span-2">
-            <Label htmlFor="amount">Amount (₹) — limit ₹{MAX_AMOUNT.toLocaleString("en-IN")}</Label>
+            <Label htmlFor="amount">Amount (₹)</Label>
             <Input
               id="amount"
               type="number"
