@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { Login } from "@/components/Login";
 import { Navbar } from "@/components/Navbar";
 import { CreditCard } from "@/components/CreditCard";
 import { TransactionForm, TransactionFormData } from "@/components/TransactionForm";
@@ -12,38 +11,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 
 const Index = () => {
-  const navigate = useNavigate();
-  const [userName, setUserName] = useState<string>("User");
+  const [userName, setUserName] = useState<string | null>("Guest");
   const [cardData, setCardData] = useState({ cardholderName: "", cardNumber: "", expiry: "", cvv: "" });
   const [cvvFocused, setCvvFocused] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [lastResult, setLastResult] = useState<Transaction | null>(null);
 
   useEffect(() => {
-    document.title = "SecureGuard – Dashboard";
-  }, []);
+    document.title = userName ? "SecureGuard – Dashboard" : "SecureGuard – AI Fraud Detection";
+  }, [userName]);
 
-  useEffect(() => {
-    let mounted = true;
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!mounted || !data.user) return;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("display_name")
-        .eq("user_id", data.user.id)
-        .maybeSingle();
-      if (mounted) {
-        setUserName(profile?.display_name || data.user.email?.split("@")[0] || "User");
-      }
-    });
-    return () => { mounted = false; };
-  }, []);
+  function handleLogin(name: string) {
+    localStorage.setItem("sg_user", name);
+    setUserName(name);
+  }
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
+  function handleLogout() {
+    localStorage.removeItem("sg_user");
+    setUserName(null);
     setTransactions([]);
     setLastResult(null);
-    navigate("/auth", { replace: true });
   }
 
   const handleCardChange = useCallback((d: Partial<typeof cardData>) => {
