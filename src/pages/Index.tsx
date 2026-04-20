@@ -15,25 +15,7 @@ const Index = () => {
   const [cardData, setCardData] = useState({ cardholderName: "", cardNumber: "", expiry: "", cvv: "" });
   const [cvvFocused, setCvvFocused] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [location, setLocation] = useState<string>("Detecting…");
   const [lastResult, setLastResult] = useState<Transaction | null>(null);
-
-  // Detect location via browser geolocation (best-effort)
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocation("Unknown");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude.toFixed(2);
-        const lng = pos.coords.longitude.toFixed(2);
-        setLocation(`${lat}°, ${lng}°`);
-      },
-      () => setLocation("Local Network"),
-      { timeout: 5000 }
-    );
-  }, []);
 
   useEffect(() => {
     document.title = userName ? "SecureGuard – Dashboard" : "SecureGuard – AI Fraud Detection";
