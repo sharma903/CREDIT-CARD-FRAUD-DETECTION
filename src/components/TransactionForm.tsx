@@ -23,15 +23,6 @@ interface Props {
   onSubmit: (data: TransactionFormData) => void;
 }
 
-const LOCATION_OPTIONS = [
-  "Mumbai, India",
-  "Delhi, India",
-  "Bengaluru, India",
-  "Chennai, India",
-  "Kolkata, India",
-  "Hyderabad, India",
-  "Foreign / Unknown",
-];
 
 function pad(n: number) {
   return n.toString().padStart(2, "0");
@@ -55,7 +46,7 @@ export function TransactionForm({ onChange, onCvvFocus, onSubmit }: Props) {
   const [amount, setAmount] = useState<string>("");
   const [date, setDate] = useState<string>(defaultDateStr());
   const [time, setTime] = useState<string>(defaultTimeStr());
-  const [location, setLocation] = useState<string>("Mumbai, India");
+  const [location, setLocation] = useState<string>("");
 
   useEffect(() => {
     onChange({ cardholderName, cardNumber, expiry, cvv });
@@ -202,15 +193,15 @@ export function TransactionForm({ onChange, onCvvFocus, onSubmit }: Props) {
           </div>
 
           <div className="sm:col-span-2">
-            <Label>Location</Label>
-            <Select value={location} onValueChange={setLocation}>
-              <SelectTrigger><SelectValue placeholder="Select location" /></SelectTrigger>
-              <SelectContent>
-                {LOCATION_OPTIONS.map((l) => (
-                  <SelectItem key={l} value={l}>{l}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="tx-location">Location</Label>
+            <Input
+              id="tx-location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. Mumbai, India"
+              maxLength={60}
+              required
+            />
           </div>
         </div>
 
