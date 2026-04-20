@@ -46,7 +46,7 @@ export function TransactionHistory({ transactions }: Props) {
               </div>
             </div>
             <div className="text-right shrink-0">
-              <div className="font-mono font-semibold">${t.amount.toLocaleString()}</div>
+              <div className="font-mono font-semibold">₹{t.amount.toLocaleString("en-IN")}</div>
               <div className={`text-xs font-medium ${t.isFraud ? "text-destructive" : "text-success"}`}>
                 Risk {t.riskScore}
               </div>
