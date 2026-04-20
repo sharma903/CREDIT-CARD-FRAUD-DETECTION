@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Wifi } from "lucide-react";
+import { useState } from "react";
 
 interface CreditCardProps {
   cardholderName: string;
@@ -18,12 +19,15 @@ export function CreditCard({ cardholderName, cardNumber, expiry, cvv, flipped }:
   const displayName = (cardholderName || "CARDHOLDER NAME").toUpperCase();
   const displayExpiry = expiry || "MM/YY";
   const displayCvv = (cvv || "•••").padEnd(3, "•").slice(0, 4);
+  const [manualFlip, setManualFlip] = useState(false);
+  const isFlipped = flipped || manualFlip;
 
   return (
     <div className="perspective-1000 w-full max-w-[420px] mx-auto">
       <motion.div
-        className="relative w-full aspect-[1.586/1] preserve-3d"
-        animate={{ rotateY: flipped ? 180 : 0 }}
+        className="relative w-full aspect-[1.586/1] preserve-3d cursor-pointer"
+        onClick={() => setManualFlip((f) => !f)}
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
       >
         {/* FRONT */}

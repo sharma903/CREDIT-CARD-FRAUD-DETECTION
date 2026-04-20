@@ -12,7 +12,7 @@ export function Navbar({ userName, onLogout }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/70 border-b border-border">
       <div className="container flex items-center justify-between h-24">
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-2">
           <img 
             src={logo} 
             alt="SecureGuard logo" 
