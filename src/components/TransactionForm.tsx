@@ -46,7 +46,7 @@ export function TransactionForm({ onChange, onCvvFocus, onSubmit }: Props) {
   const [amount, setAmount] = useState<string>("");
   const [date, setDate] = useState<string>(defaultDateStr());
   const [time, setTime] = useState<string>(defaultTimeStr());
-  const [location, setLocation] = useState<string>("Mumbai, India");
+  const [location, setLocation] = useState<string>("");
 
   useEffect(() => {
     onChange({ cardholderName, cardNumber, expiry, cvv });
