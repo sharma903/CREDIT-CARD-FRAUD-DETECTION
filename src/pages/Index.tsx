@@ -154,7 +154,6 @@ const Index = () => {
               onChange={handleCardChange}
               onCvvFocus={setCvvFocused}
               onSubmit={handleSubmit}
-              location={location}
             />
           </div>
         </section>
