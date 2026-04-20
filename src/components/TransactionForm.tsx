@@ -23,15 +23,6 @@ interface Props {
   onSubmit: (data: TransactionFormData) => void;
 }
 
-const LOCATION_OPTIONS = [
-  "Mumbai, India",
-  "Delhi, India",
-  "Bengaluru, India",
-  "Chennai, India",
-  "Kolkata, India",
-  "Hyderabad, India",
-  "Foreign / Unknown",
-];
 
 function pad(n: number) {
   return n.toString().padStart(2, "0");
