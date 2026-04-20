@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 
 const Index = () => {
-  const [userName, setUserName] = useState<string | null>(() => localStorage.getItem("sg_user"));
+  const [userName, setUserName] = useState<string | null>("Guest");
   const [cardData, setCardData] = useState({ cardholderName: "", cardNumber: "", expiry: "", cvv: "" });
   const [cvvFocused, setCvvFocused] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -79,7 +79,7 @@ const Index = () => {
     return { total, fraud, safe, avgRisk };
   }, [transactions]);
 
-  if (!userName) return <Login onLogin={handleLogin} />;
+  
 
   return (
     <div className="min-h-screen">
