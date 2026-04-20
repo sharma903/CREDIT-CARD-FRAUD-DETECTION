@@ -61,7 +61,7 @@ export type FraudResult = {
 };
 
 export const MIN_AMOUNT = 1;
-export const MAX_AMOUNT = 10000;
+export const MAX_AMOUNT = 50000;
 
 // Returns true if hour is within SAFE window: 05:00 AM (5) up to 11:59 PM (23)
 // Fraud window: 12:00 AM (0) - 04:59 AM (4)
