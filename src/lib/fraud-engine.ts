@@ -6,20 +6,37 @@ export type Merchant = {
 
 export const MERCHANTS: Merchant[] = [
   { name: "Amazon", category: "E-commerce", riskLevel: "low" },
-  { name: "Walmart", category: "Retail", riskLevel: "low" },
+  { name: "Flipkart", category: "E-commerce", riskLevel: "low" },
   { name: "Apple Store", category: "Electronics", riskLevel: "low" },
   { name: "Starbucks", category: "Food & Beverage", riskLevel: "low" },
   { name: "Netflix", category: "Subscription", riskLevel: "low" },
   { name: "Uber", category: "Transport", riskLevel: "medium" },
-  { name: "Best Buy", category: "Electronics", riskLevel: "medium" },
-  { name: "Target", category: "Retail", riskLevel: "low" },
+  { name: "Croma", category: "Electronics", riskLevel: "medium" },
+  { name: "BigBazaar", category: "Retail", riskLevel: "low" },
   { name: "eBay", category: "E-commerce", riskLevel: "medium" },
-  { name: "PayPal", category: "Digital Wallet", riskLevel: "medium" },
+  { name: "Paytm", category: "Digital Wallet", riskLevel: "medium" },
   { name: "CryptoExchange", category: "Cryptocurrency", riskLevel: "high" },
   { name: "OnlineCasino", category: "Gambling", riskLevel: "high" },
   { name: "ForeignATM", category: "Cash Withdrawal", riskLevel: "high" },
   { name: "LuxuryGoods Inc", category: "Luxury", riskLevel: "high" },
 ];
+
+export const MERCHANT_PRODUCTS: Record<string, string[]> = {
+  "Amazon": ["Echo Dot", "Kindle Paperwhite", "Fire TV Stick", "Wireless Headphones", "Smart Watch"],
+  "Flipkart": ["Smartphone", "Laptop", "Bluetooth Speaker", "Backpack", "Smart TV"],
+  "Apple Store": ["iPhone 15 Pro", "MacBook Air", "AirPods Pro", "iPad", "Apple Watch"],
+  "Starbucks": ["Caffè Latte", "Cappuccino", "Cold Brew", "Frappuccino", "Croissant"],
+  "Netflix": ["Basic Plan", "Standard Plan", "Premium Plan", "Mobile Plan"],
+  "Uber": ["UberGo Ride", "Uber Premier", "Uber Auto", "Uber Eats Order"],
+  "Croma": ["LED TV", "Refrigerator", "Washing Machine", "Microwave", "Air Conditioner"],
+  "BigBazaar": ["Groceries", "Apparel", "Home Essentials", "Kitchenware"],
+  "eBay": ["Vintage Watch", "Collectible Coin", "Camera Lens", "Sneakers"],
+  "Paytm": ["Mobile Recharge", "Electricity Bill", "DTH Recharge", "Gas Bill"],
+  "CryptoExchange": ["Bitcoin Purchase", "Ethereum Purchase", "USDT Transfer", "Altcoin Trade"],
+  "OnlineCasino": ["Poker Buy-in", "Slots Credits", "Roulette Chips", "Blackjack Stake"],
+  "ForeignATM": ["Cash Withdrawal", "Currency Exchange", "Balance Inquiry"],
+  "LuxuryGoods Inc": ["Designer Handbag", "Swiss Watch", "Diamond Ring", "Premium Sunglasses"],
+};
 
 export type Transaction = {
   id: string;
@@ -102,14 +119,14 @@ export function analyzeFraud(
     reasons.push(`Medium-risk merchant: ${merchant.category}`);
   }
 
-  // Amount
-  if (amount > 5000) {
+  // Amount (INR)
+  if (amount > 25000) {
     riskScore += 15;
     confidence += 10;
-    reasons.push(`Large amount: $${amount.toLocaleString()}`);
-  } else if (amount > 2000) {
+    reasons.push(`Large amount: ₹${amount.toLocaleString("en-IN")}`);
+  } else if (amount > 10000) {
     riskScore += 7;
-    reasons.push(`Above-average amount: $${amount.toLocaleString()}`);
+    reasons.push(`Above-average amount: ₹${amount.toLocaleString("en-IN")}`);
   }
 
   // Location
