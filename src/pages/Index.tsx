@@ -128,11 +128,61 @@ const Index = () => {
                 </motion.div>
               ) : (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="rounded-xl border border-border gradient-card p-5 text-sm text-muted-foreground"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="gradient-card border border-primary/20 rounded-xl p-6 shadow-card"
                 >
-                  Fill in the transaction details to run an AI risk analysis. Click the CVV field to see the back of the card.
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <h3 className="font-display text-lg font-semibold">Protection Status</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">Real-time monitoring active</p>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/30">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
+                      </span>
+                      <span className="text-xs font-semibold text-success">LIVE</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { icon: ShieldCheck, label: "AI Engine", value: "Active", color: "text-success" },
+                      { icon: ShieldAlert, label: "Threat Level", value: "Low", color: "text-primary" },
+                      { icon: ShieldCheck, label: "Encryption", value: "AES-256", color: "text-success" },
+                      { icon: ShieldCheck, label: "Compliance", value: "PCI-DSS", color: "text-primary" },
+                    ].map((item, i) => (
+                      <motion.div
+                        key={item.label}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 + i * 0.05 }}
+                        className="rounded-lg border border-border bg-background/40 p-3"
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <item.icon className={`w-4 h-4 ${item.color}`} />
+                          <span className="text-xs uppercase tracking-wider text-muted-foreground">{item.label}</span>
+                        </div>
+                        <div className={`font-display font-bold text-sm ${item.color}`}>{item.value}</div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 pt-5 border-t border-border">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center shrink-0 shadow-glow">
+                        <ShieldCheck className="w-5 h-5 text-primary-foreground" />
+                      </div>
+                      <div>
+                        <h4 className="font-display font-semibold text-sm">Enterprise-Grade Security</h4>
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                          ML models trained on millions of transactions to detect anomalies in milliseconds.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
