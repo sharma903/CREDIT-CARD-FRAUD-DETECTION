@@ -79,7 +79,7 @@ const Index = () => {
     return { total, fraud, safe, avgRisk };
   }, [transactions]);
 
-  if (!userName) return <Login onLogin={handleLogin} />;
+  
 
   return (
     <div className="min-h-screen">
