@@ -20,15 +20,24 @@ export function CreditCard({ cardholderName, cardNumber, expiry, cvv, flipped }:
   const displayExpiry = expiry || "MM/YY";
   const displayCvv = (cvv || "•••").padEnd(3, "•").slice(0, 4);
   const [manualFlip, setManualFlip] = useState(false);
+  const [spinCount, setSpinCount] = useState(0);
   const isFlipped = flipped || manualFlip;
+  // Each click adds 360° (one full extra spin) on top of the front/back rotation
+  const rotateY = (isFlipped ? 180 : 0) + spinCount * 360;
+
+  const handleClick = () => {
+    setManualFlip((f) => !f);
+    setSpinCount((c) => c + 1);
+  };
 
   return (
     <div className="perspective-1000 w-full max-w-[420px] mx-auto">
       <motion.div
         className="relative w-full aspect-[1.586/1] preserve-3d cursor-pointer"
-        onClick={() => setManualFlip((f) => !f)}
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+        onClick={handleClick}
+        animate={{ rotateY }}
+        transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+        whileHover={{ scale: 1.02 }}
       >
         {/* FRONT */}
         <div className="absolute inset-0 backface-hidden rounded-2xl shadow-card overflow-hidden gradient-card border border-primary/30">
