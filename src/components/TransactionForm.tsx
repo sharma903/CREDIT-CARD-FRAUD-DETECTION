@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MERCHANTS, MIN_AMOUNT, MAX_AMOUNT, formatTime12 } from "@/lib/fraud-engine";
-import { MapPin, Clock } from "lucide-react";
+import { MERCHANTS, MERCHANT_PRODUCTS, MIN_AMOUNT, MAX_AMOUNT } from "@/lib/fraud-engine";
 
 export interface TransactionFormData {
   cardholderName: string;
@@ -15,16 +14,38 @@ export interface TransactionFormData {
   productName: string;
   amount: number;
   location: string;
+  timestamp: Date;
 }
 
 interface Props {
   onChange: (data: Partial<TransactionFormData>) => void;
   onCvvFocus: (focused: boolean) => void;
   onSubmit: (data: TransactionFormData) => void;
-  location: string;
 }
 
-export function TransactionForm({ onChange, onCvvFocus, onSubmit, location }: Props) {
+const LOCATION_OPTIONS = [
+  "Mumbai, India",
+  "Delhi, India",
+  "Bengaluru, India",
+  "Chennai, India",
+  "Kolkata, India",
+  "Hyderabad, India",
+  "Foreign / Unknown",
+];
+
+function pad(n: number) {
+  return n.toString().padStart(2, "0");
+}
+function defaultDateStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function defaultTimeStr() {
+  const d = new Date();
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+export function TransactionForm({ onChange, onCvvFocus, onSubmit }: Props) {
   const [cardholderName, setCardholderName] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
@@ -32,31 +53,28 @@ export function TransactionForm({ onChange, onCvvFocus, onSubmit, location }: Pr
   const [merchantName, setMerchantName] = useState("");
   const [productName, setProductName] = useState("");
   const [amount, setAmount] = useState<string>("");
-  const [now, setNow] = useState(new Date());
-
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
+  const [date, setDate] = useState<string>(defaultDateStr());
+  const [time, setTime] = useState<string>(defaultTimeStr());
+  const [location, setLocation] = useState<string>("Mumbai, India");
 
   useEffect(() => {
     onChange({ cardholderName, cardNumber, expiry, cvv });
   }, [cardholderName, cardNumber, expiry, cvv, onChange]);
 
-  function handleCardNumber(v: string) {
-    const digits = v.replace(/\D/g, "").slice(0, 16);
-    setCardNumber(digits);
-  }
+  // Reset product when merchant changes
+  useEffect(() => {
+    setProductName("");
+  }, [merchantName]);
 
+  const productOptions = merchantName ? MERCHANT_PRODUCTS[merchantName] ?? [] : [];
+
+  function handleCardNumber(v: string) {
+    setCardNumber(v.replace(/\D/g, "").slice(0, 16));
+  }
   function handleExpiry(v: string) {
     const digits = v.replace(/\D/g, "").slice(0, 4);
-    if (digits.length >= 3) {
-      setExpiry(`${digits.slice(0, 2)}/${digits.slice(2)}`);
-    } else {
-      setExpiry(digits);
-    }
+    setExpiry(digits.length >= 3 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits);
   }
-
   function handleCvv(v: string) {
     setCvv(v.replace(/\D/g, "").slice(0, 4));
   }
@@ -66,6 +84,11 @@ export function TransactionForm({ onChange, onCvvFocus, onSubmit, location }: Pr
     const amt = Number(amount);
     if (!cardholderName || cardNumber.length !== 16 || !expiry || cvv.length < 3) return;
     if (!merchantName || !productName || isNaN(amt) || amt < MIN_AMOUNT || amt > MAX_AMOUNT) return;
+    if (!date || !time) return;
+
+    const [yy, mm, dd] = date.split("-").map(Number);
+    const [hh, mi] = time.split(":").map(Number);
+    const ts = new Date(yy, (mm ?? 1) - 1, dd ?? 1, hh ?? 0, mi ?? 0, 0);
 
     onSubmit({
       cardholderName,
@@ -76,25 +99,12 @@ export function TransactionForm({ onChange, onCvvFocus, onSubmit, location }: Pr
       productName,
       amount: amt,
       location,
+      timestamp: ts,
     });
   }
 
   return (
     <form onSubmit={submit} className="space-y-5">
-      {/* Live time + location */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg bg-secondary/50 border border-border">
-        <div className="flex items-center gap-2 text-sm">
-          <Clock className="w-4 h-4 text-primary" />
-          <span className="text-muted-foreground">Live time:</span>
-          <span className="font-mono font-semibold">{formatTime12(now)}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <MapPin className="w-4 h-4 text-primary" />
-          <span className="text-muted-foreground">Location:</span>
-          <span className="font-medium truncate">{location}</span>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
           <Label htmlFor="ch-name">Cardholder Name</Label>
@@ -153,23 +163,54 @@ export function TransactionForm({ onChange, onCvvFocus, onSubmit, location }: Pr
           </div>
 
           <div>
-            <Label htmlFor="product">Product Name</Label>
-            <Input id="product" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="e.g. iPhone 15 Pro" maxLength={60} required />
+            <Label>Product</Label>
+            <Select value={productName} onValueChange={setProductName} disabled={!merchantName}>
+              <SelectTrigger>
+                <SelectValue placeholder={merchantName ? "Select product" : "Select merchant first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {productOptions.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="sm:col-span-2">
-            <Label htmlFor="amount">Amount (USD) — min ${MIN_AMOUNT}, max ${MAX_AMOUNT.toLocaleString()}</Label>
+            <Label htmlFor="amount">Amount (₹) — limit ₹{MAX_AMOUNT.toLocaleString("en-IN")}</Label>
             <Input
               id="amount"
               type="number"
               min={MIN_AMOUNT}
               max={MAX_AMOUNT}
-              step="0.01"
+              step="1"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="125.00"
+              placeholder="1500"
               required
             />
+          </div>
+
+          <div>
+            <Label htmlFor="tx-date">Transaction Date</Label>
+            <Input id="tx-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          </div>
+
+          <div>
+            <Label htmlFor="tx-time">Transaction Time</Label>
+            <Input id="tx-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+          </div>
+
+          <div className="sm:col-span-2">
+            <Label>Location</Label>
+            <Select value={location} onValueChange={setLocation}>
+              <SelectTrigger><SelectValue placeholder="Select location" /></SelectTrigger>
+              <SelectContent>
+                {LOCATION_OPTIONS.map((l) => (
+                  <SelectItem key={l} value={l}>{l}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
