@@ -20,14 +20,20 @@ export function CreditCard({ cardholderName, cardNumber, expiry, cvv, flipped }:
   const displayExpiry = expiry || "MM/YY";
   const displayCvv = (cvv || "•••").padEnd(3, "•").slice(0, 4);
   const [manualFlip, setManualFlip] = useState(false);
-  const [spinCount, setSpinCount] = useState(0);
+  const [yRotation, setYRotation] = useState(0);
+  const [xRotation, setXRotation] = useState(0);
   const isFlipped = flipped || manualFlip;
-  // Each click adds 360° (one full extra spin) on top of the front/back rotation
-  const rotateY = (isFlipped ? 180 : 0) + spinCount * 360;
+
+  // External flip (CVV focus) only rotates Y to 180/0 without extra spin
+  const baseY = isFlipped ? 180 : 0;
+  const targetY = baseY + yRotation;
+  const targetX = xRotation;
 
   const handleClick = () => {
+    // One full Y spin (360°) + one full X spin (360°) — same on every click
     setManualFlip((f) => !f);
-    setSpinCount((c) => c + 1);
+    setYRotation((y) => y + 360);
+    setXRotation((x) => x + 360);
   };
 
   return (
@@ -35,8 +41,8 @@ export function CreditCard({ cardholderName, cardNumber, expiry, cvv, flipped }:
       <motion.div
         className="relative w-full aspect-[1.586/1] preserve-3d cursor-pointer"
         onClick={handleClick}
-        animate={{ rotateY }}
-        transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+        animate={{ rotateY: targetY, rotateX: targetX }}
+        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
         whileHover={{ scale: 1.02 }}
       >
         {/* FRONT */}
