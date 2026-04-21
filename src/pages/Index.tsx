@@ -18,7 +18,7 @@ const Index = () => {
   const [lastResult, setLastResult] = useState<Transaction | null>(null);
 
   useEffect(() => {
-    document.title = userName ? "Dashboard" : "SecureGuard – AI Fraud Detection";
+    document.title = userName ? "Dashboard" : "Dashboard";
   }, [userName]);
 
   function handleLogin(name: string) {

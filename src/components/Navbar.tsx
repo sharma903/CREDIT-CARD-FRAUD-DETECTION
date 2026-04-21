@@ -1,6 +1,7 @@
 import logo from "@/assets/secureguard-logo.png";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Navigate } from "react-router-dom";
 
 interface NavbarProps {
   userName: string;
@@ -12,7 +13,8 @@ export function Navbar({ userName, onLogout }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/70 border-b border-border">
       <div className="container flex items-center justify-between h-24">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 cursor-pointer"
+        onClick={() => window.location.href = "/index.html"}>
           <img 
             src={logo} 
             alt="SecureGuard logo" 
