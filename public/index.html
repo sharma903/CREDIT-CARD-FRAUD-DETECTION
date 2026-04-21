@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureGuard </title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-dark': '#0B1120',
+                        'bg-card': '#1E293B',
+                        'primary-blue': '#2563EB',
+                        'electric-blue': '#38BDF8',
+                        'slate-custom': '#94A3B8',
+                        'text-light': '#F8FAFC',
+                        'accent-neon': '#00F0FF',
+                        'error': '#EF4444',
+                        'success': '#10B981',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Poppins', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+    background-color: #0B1120;
+    color: #F8FAFC;
+    overflow-x: hidden;
+}
+
+img,
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+.glass-morphism {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-gradient {
+    background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.15) 0%, rgba(11, 17, 32, 0) 70%);
+}
+
+/* ✅ 3D Card Styles (UPDATED) */
+.perspective-1000 {
+    perspective: 1000px;
+}
+
+.card-3d-wrapper {
+    transition: transform 0.1s ease-out;
+    transform-style: preserve-3d;
+    will-change: transform; /* smoother animation */
+}
+
+.card-inner {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+    /* ✅ THIS LINE ADDED */
+    transform: translateZ(30px);
+}
+
+.card-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at var(--x) var(--y), rgba(56, 189, 248, 0.2) 0%, transparent 60%);
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+/* Highlight text */
+.highlight {
+    background: linear-gradient(90deg, #38BDF8, #00F0FF);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+.nav-link-hover {
+    position: relative;
+}
+
+.nav-link-hover::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -4px;
+    left: 0;
+    background-color: #38BDF8;
+    transition: width 0.3s ease;
+}
+
+.nav-link-hover:hover::after {
+    width: 100%;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0B1120;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #1E293B;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #2563EB;
+}
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <!-- Social Sidebar -->
+    <aside class="fixed right-6 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-6">
+        <div class="w-[1px] h-20 bg-slate-custom/30 mx-auto"></div>
+        <a href="https://twitter.com" target="_blank" class="text-slate-custom hover:text-electric-blue transition-all duration-300 hover:scale-125">
+            <i class="fa-brands fa-twitter text-xl"></i>
+        </a>
+        <a href="https://linkedin.com/in/nihalsharma2005" target="_blank" class="text-slate-custom hover:text-electric-blue transition-all duration-300 hover:scale-125">
+            <i class="fa-brands fa-linkedin-in text-xl"></i>
+        </a>
+        <a href="https://github.com/sharma903" target="_blank" class="text-slate-custom hover:text-electric-blue transition-all duration-300 hover:scale-125">
+            <i class="fa-brands fa-github text-xl"></i>
+        </a>
+        <div class="w-[1px] h-20 bg-slate-custom/30 mx-auto"></div>
+    </aside>
+
+    <!-- Header -->
+    <header class="fixed top-0 w-full z-[100] transition-all duration-500 glass-morphism border-b border-white/5">
+        <nav class="container mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2 group cursor-pointer">
+                <div class="bg-primary-blue p-2 rounded-lg group-hover:rotate-12 transition-transform">
+                    <i class="fa-solid fa-shield-halved text-xl text-white"></i>
+                </div>
+                <span class="font-display font-bold text-2xl tracking-tight">Secure<span class="text-electric-blue">Guard</span></span>
+            </div>
+
+            <!-- Desktop Nav -->
+            <div class="hidden md:flex items-center gap-10 font-medium text-sm uppercase tracking-widest text-slate-custom">
+                <a href="#home" class="nav-link-hover text-text-light">Home</a>
+                <a href="#protocol" class="nav-link-hover hover:text-text-light transition-colors">Protocol</a>
+                <a href="#monitoring" class="nav-link-hover hover:text-text-light transition-colors">Live Analytics</a>
+                <a href="#contact" class="nav-link-hover hover:text-text-light transition-colors">Contact</a>
+                <a href="auth.html" class="px-5 py-2 bg-primary-blue text-white rounded-full hover:bg-blue-600 transition-all transform hover:-translate-y-0.5">Sign in</a>
+            </div>
+
+            <!-- Mobile Toggle -->
+            <button class="md:hidden text-2xl" onclick="toggleMobileMenu()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Mobile Menu (Hidden by default) -->
+    <div id="mobile-menu" class="fixed inset-0 z-[110] bg-bg-dark/95 backdrop-blur-xl hidden flex-col items-center justify-center gap-8 text-2xl font-display">
+        <button class="absolute top-6 right-6 text-3xl" onclick="toggleMobileMenu()"><i class="fa-solid fa-xmark"></i></button>
+        <a href="#home" onclick="toggleMobileMenu()">Home</a>
+        <a href="#protocol" onclick="toggleMobileMenu()">Protocol</a>
+        <a href="#monitoring" onclick="toggleMobileMenu()">Analytics</a>
+        <a href="#contact" onclick="toggleMobileMenu()" class="text-electric-blue">Contact</a>
+    </div>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="relative min-h-screen flex flex-col items-center justify-center pt-20 overflow-hidden">
+            <div class="absolute inset-0 hero-gradient"></div>
+            
+            <div class="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-16">
+                <!-- Text Content -->
+                <div class="lg:w-1/2 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-electric-blue text-xs font-bold uppercase tracking-widest mb-6">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-electric-blue opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-electric-blue"></span>
+                        </span>
+                        System Online: 99.9% Defense rate
+                    </div>
+                    <h1 class="text-5xl lg:text-7xl font-display font-extrabold leading-tight mb-6">
+                        Next-Gen <span class="highlight">Fraud Detection</span>
+                    </h1>
+                    <p class="text-slate-custom text-lg lg:text-xl mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                        Protecting your financial assets with AI-driven, real-time transaction monitoring and predictive threat analysis. Experience the future of secure banking.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+                        <a href="#monitoring" class="px-8 py-4 bg-primary-blue hover:bg-blue-600 text-white rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                            View Analytics <i class="fa-solid fa-chart-line"></i>
+                        </a>
+                        <a href="#protocol" class="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-bold transition-all flex items-center gap-2">
+                            Learn More <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 3D Card Visual -->
+                <div class="lg:w-1/2 perspective-1000 py-10" id="card-trigger">
+                    <div id="credit-card" class="card-3d-wrapper relative w-[320px] h-[200px] sm:w-[420px] sm:h-[260px] mx-auto  ">
+                        <div class="card-inner w-full h-full rounded-2xl p-8 flex flex-col justify-between relative overflow-hidden">
+                            <div class="card-glow" id="card-glow"></div>
+                            
+                            <!-- Top Row -->
+                            <div class="flex justify-between items-start relative z-10">
+                                <div class="w-12 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-md flex items-center justify-center">
+                                    <i class="fa-solid fa-microchip text-2xl text-black/40"></i>
+                                </div>
+                                <i class="fa-brands fa-cc-visa text-5xl text-white opacity-80"></i>
+                            </div>
+
+                            <!-- Middle Row -->
+                            <div class="relative z-10">
+                                <p class="text-xl sm:text-2xl font-mono tracking-[0.2em] text-white/90">7894 7896 7854 4920</p>
+                            </div>
+
+                            <!-- Bottom Row -->
+                            <div class="flex justify-between items-end relative z-10">
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-widest text-slate-custom mb-1">Card Holder</p>
+                                    <p class="text-sm sm:text-lg font-medium tracking-wide uppercase">Nihal Sharma</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] uppercase tracking-widest text-slate-custom mb-1">Expires</p>
+                                    <p class="text-sm sm:text-lg font-medium tracking-wide">12/28</p>
+                                </div>
+                            </div>
+
+                            <!-- Decorative background shapes -->
+                            <div class="absolute -top-10 -right-10 w-40 h-40 bg-electric-blue/10 rounded-full blur-3xl"></div>
+                            <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-primary-blue/20 rounded-full blur-3xl"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Incident Response Protocol -->
+        <section id="protocol" class="py-24 bg-bg-dark relative overflow-hidden">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl lg:text-5xl font-display font-bold mb-4">Incident Response <span class="text-electric-blue">Protocol</span></h2>
+                    <p class="text-slate-custom max-w-2xl mx-auto">Immediate steps to take if you suspect fraudulent activity on your account. Every second counts in financial security.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Step 1 -->
+                    <div class="glass-morphism p-10 rounded-3xl group hover:border-electric-blue/50 transition-all duration-500">
+                        <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-lock text-3xl text-electric-blue"></i>
+                        </div>
+                        <h3 class="text-2xl font-display font-bold mb-4">1. Freeze Your Card</h3>
+                        <p class="text-slate-custom leading-relaxed">Instantly block all incoming and outgoing transactions via our mobile app or web portal to prevent further loss.</p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="glass-morphism p-10 rounded-3xl group hover:border-electric-blue/50 transition-all duration-500">
+                        <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-phone-volume text-3xl text-electric-blue"></i>
+                        </div>
+                        <h3 class="text-2xl font-display font-bold mb-4">2. Contact Support</h3>
+                        <p class="text-slate-custom leading-relaxed">Reach our dedicated 24/7 fraud resolution team. We use voice biometrics to verify your identity instantly.</p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="glass-morphism p-10 rounded-3xl group hover:border-electric-blue/50 transition-all duration-500">
+                        <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-file-shield text-3xl text-electric-blue"></i>
+                        </div>
+                        <h3 class="text-2xl font-display font-bold mb-4">3. Review Activity</h3>
+                        <p class="text-slate-custom leading-relaxed">Audit your recent statements. Our ML models help identify unauthorized actions for automated chargebacks.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Monitoring Section -->
+        <section id="monitoring" class="py-24 bg-slate-900/30">
+            <div class="container mx-auto px-6">
+                <div class="flex flex-col lg:flex-row items-end justify-between mb-12 gap-6">
+                    <div class="max-w-xl">
+                        <h2 class="text-4xl lg:text-5xl font-display font-bold mb-4">Live Threat <span class="text-electric-blue">Monitoring</span></h2>
+                        <p class="text-slate-custom">Real-time analysis of transaction anomalies globally. Our engine processes over 10,000 transactions per second.</p>
+                    </div>
+                    <div class="flex items-center gap-4 bg-bg-card border border-white/5 p-4 rounded-2xl">
+                        <div class="text-right">
+                            <p class="text-[10px] text-slate-custom uppercase tracking-tighter">Current Threat Level</p>
+                            <p class="text-success font-bold">LOW RISK</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
+                            <i class="fa-solid fa-shield-check text-success"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-morphism rounded-3xl p-6 lg:p-10">
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="flex items-center gap-4">
+                            <div class="w-3 h-3 bg-electric-blue rounded-full animate-pulse"></div>
+                            <h4 class="font-bold text-lg">Fraud Anomalies Detected (Global)</h4>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 bg-white/5 rounded text-xs text-slate-custom">Live</span>
+                            <span class="px-3 py-1 bg-white/5 rounded text-xs text-slate-custom">24h View</span>
+                        </div>
+                    </div>
+                    <div class="h-[300px] lg:h-[450px] w-full">
+                        <canvas id="fraudChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-24 relative">
+            <div class="container mx-auto px-6">
+                <div class="max-w-5xl mx-auto glass-morphism rounded-[2.5rem] overflow-hidden flex flex-col lg:flex-row">
+                    <div class="lg:w-2/5 p-10 lg:p-14 bg-primary-blue relative overflow-hidden">
+                        <div class="relative z-10">
+                            <h2 class="text-4xl font-display font-bold mb-6">Report an Issue</h2>
+                            <p class="text-blue-100 mb-10 leading-relaxed">Our security analysts are ready to investigate any suspicious activity on your account. Fill out the form for priority support.</p>
+                            
+                            <div class="space-y-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                                        <i class="fa-solid fa-envelope"></i>
+                                    </div>
+                                    <span>nihalsharma967@gmail.com</span>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                                        <i class="fa-solid fa-phone"></i>
+                                    </div>
+                                    <span>+91-9039815061</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Decor -->
+                        <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-white/10 rounded-full"></div>
+                    </div>
+
+                    <div class="lg:w-3/5 p-10 lg:p-14">
+    <form id="contact-form" class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <label class="text-sm font-medium text-slate-custom ml-1">Full Name</label>
+                <input type="text" name="user_name" required placeholder="John Doe" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-electric-blue transition-colors">
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium text-slate-custom ml-1">Email Address</label>
+                <input type="email" name="user_email" required placeholder="john@example.com" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-electric-blue transition-colors">
+            </div>
+        </div>
+        <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-custom ml-1">Incident Details</label>
+            <textarea name="message" required rows="4" placeholder="Describe the suspicious activity..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-electric-blue transition-colors"></textarea>
+        </div>
+        <button type="submit" id="submit-btn" class="w-full bg-electric-blue hover:bg-cyan-400 text-bg-dark font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-3">
+            <span>Submit Report</span>
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
+        <div id="form-status" class="text-center font-medium mt-4 hidden"></div>
+    </form>
+</div>
+                </div>
+            </div>
+
+            
+        </section>
+    </main>
+
+    <script>
+
+//         const token = localStorage.getItem("token");
+
+//         if (!token) {
+//             window.location.href = "auth.html";
+// }
+
+            
+        // ✅ Wait for DOM to load (VERY IMPORTANT)
+document.addEventListener("DOMContentLoaded", () => {
+
+    // Mobile Menu Toggle
+    function toggleMobileMenu() {
+        const menu = document.getElementById('mobile-menu');
+        menu.classList.toggle('hidden');
+        menu.classList.toggle('flex');
+    }
+
+    // Make function global (for HTML onclick)
+    window.toggleMobileMenu = toggleMobileMenu;
+
+
+    // =========================
+    // ✅ 3D Card Interaction (FIXED)
+    // =========================
+    const card = document.getElementById('credit-card');
+    const glow = document.getElementById('card-glow');
+    const container = document.getElementById('card-trigger');
+
+    let isHovering = false;
+
+    container.addEventListener('mousemove', (e) => {
+        isHovering = true;
+
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const rotateX = (y - centerY) / 10;
+        const rotateY = (centerX - x) / 10;
+
+        // ✅ Smooth + premium effect
+        card.style.transform = `
+            rotateX(${rotateX}deg) 
+            rotateY(${rotateY}deg) 
+            scale(1.05)
+        `;
+
+        glow.style.setProperty('--x', `${(x / rect.width) * 100}%`);
+        glow.style.setProperty('--y', `${(y / rect.height) * 100}%`);
+    });
+
+    container.addEventListener('mouseleave', () => {
+        isHovering = false;
+
+        // ✅ Smooth reset
+        card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
+    });
+
+
+    // =========================
+    // ✅ Scroll Effect (SAFE FIX)
+    // =========================
+    window.addEventListener('scroll', () => {
+        if (isHovering) return; // ❗ don't override mouse interaction
+
+        const scrollPos = window.scrollY;
+
+        if (window.innerWidth > 1024) {
+            const rotation = scrollPos * 0.03;
+
+            card.style.transform = `
+                rotateX(${rotation}deg) 
+                rotateY(${rotation * 0.5}deg)
+            `;
+        }
+    });
+
+
+    // =========================
+    // Chart.js Implementation
+    // =========================
+    const ctx = document.getElementById('fraudChart').getContext('2d');
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
+    gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
+
+    let chartData = Array.from({ length: 12 }, () => Math.floor(Math.random() * 40) + 10);
+    let labels = Array.from({ length: 12 }, (_, i) => `${i * 2}:00`);
+
+    const fraudChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Threat Intensity',
+                data: chartData,
+                borderColor: '#38BDF8',
+                borderWidth: 3,
+                pointBackgroundColor: '#38BDF8',
+                pointBorderColor: '#0B1120',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: true,
+                backgroundColor: gradient,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#94A3B8' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#94A3B8' }
+                }
+            }
+        }
+    });
+
+    // Live Data Simulation
+    setInterval(() => {
+        chartData.shift();
+        chartData.push(Math.floor(Math.random() * 60) + 5);
+        fraudChart.update('none');
+    }, 2000);
+
+
+   // =========================
+// Contact Form (REAL EMAIL)
+// =========================
+
+// Initialize EmailJS
+(function () {
+    emailjs.init("g7MAcb6WcjmsP9ZNF"); // 
+})();
+
+const contactForm = document.getElementById('contact-form');
+const submitBtn = document.getElementById('submit-btn');
+const formStatus = document.getElementById('form-status');
+
+contactForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> Sending...`;
+
+    emailjs.sendForm(
+        "service_3rehexb",
+        "template_hhikr1e",
+
+        this
+    ).then(() => {
+
+        submitBtn.classList.add('bg-success');
+        submitBtn.innerHTML = `<i class="fa-solid fa-check"></i> Report Sent Successfully`;
+
+        formStatus.innerText = "Report sent to your email successfully!";
+        formStatus.classList.remove('hidden', 'text-error');
+        formStatus.classList.add('text-success');
+
+        contactForm.reset();
+
+    }).catch((error) => {
+
+        submitBtn.innerHTML = "Send Failed ❌";
+
+        formStatus.innerText = "❌ Failed to send. Check console.";
+        formStatus.classList.remove('hidden');
+        formStatus.classList.add('text-error');
+
+        console.error("EmailJS Error:", error);
+    });
+});
+
+    // =========================
+    // Header Scroll Effect
+    // =========================
+    window.addEventListener('scroll', () => {
+        const header = document.querySelector('header');
+
+        if (window.scrollY > 50) {
+            header.classList.add('py-2');
+            header.classList.remove('py-4');
+        } else {
+            header.classList.add('py-4');
+            header.classList.remove('py-2');
+        }
+    });
+
+});
+
+         const user = JSON.parse(localStorage.getItem("user"));
+
+            if (user) {
+                console.log("Welcome", user.name);
+
+                // Example: show name in UI
+                document.body.insertAdjacentHTML("afterbegin",
+                    `<p style="position:fixed; top:10px; right:20px;">👤 ${user.name}</p>`
+                );
+}
+    </script>
+
+    
+
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+    </script>
+
+</body>
+</html>
+  

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Success</title>
+<link rel="icon" type="image/png" href="logo.png">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+<style>
+
+body {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* SAME CARD STYLE */
+.success-box {
+    background: white;
+    padding: 50px;
+    border-radius: 20px;
+    text-align: center;
+
+    box-shadow: 
+        0 25px 60px rgba(0,0,0,0.2),
+        inset 0 3px 6px rgba(255,255,255,0.6);
+}
+
+/* CHECK ICON */
+.checkmark {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px;
+
+    animation: pop 0.4s ease;
+}
+
+.checkmark i {
+    color: white;
+    font-size: 32px;
+}
+
+/* Animation */
+@keyframes pop {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+
+h2 {
+    margin-bottom: 10px;
+    color: #1f2937;
+}
+
+p {
+    color: #6b7280;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="success-box">
+    <div class="checkmark">
+        <i class="fas fa-check"></i>
+    </div>
+
+    <h2>Verified Successfully</h2>
+    <p>Your OTP has been verified</p>
+</div>
+
+<script>
+
+   // ✅ Clear all sensitive info
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  sessionStorage.clear(); // remove any session data
+  localStorage.removeItem("email"); // if you want to reset "remember me"
+
+  // ✅ Replace current page in history to prevent back
+  setTimeout(() => {
+      window.location.replace("reset-password.html"); // 'replace' prevents going back to success
+  }, 2000);
+
+
+</script>
+
+</body>
+</html>
