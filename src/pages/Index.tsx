@@ -21,17 +21,40 @@ const Index = () => {
     document.title = userName ? "Dashboard" : "Dashboard";
   }, [userName]);
 
-  function handleLogin(name: string) {
-    localStorage.setItem("sg_user", name);
-    setUserName(name);
+  useEffect(() => {
+  const storedUser =
+    JSON.parse(localStorage.getItem("user") || "null") ||
+    (localStorage.getItem("sg_user")
+      ? { name: localStorage.getItem("sg_user") }
+      : null);
+
+  if (storedUser?.name) {
+    setUserName(storedUser.name);
   }
+}, []);
+
+  function handleLogin(name: string) {
+  // keep your existing
+  localStorage.setItem("sg_user", name);
+
+  // ADD this (important for consistency with HTML + backend)
+  localStorage.setItem("user", JSON.stringify({ name }));
+
+  setUserName(name);
+}
 
   function handleLogout() {
-    localStorage.removeItem("sg_user");
-    setUserName(null);
-    setTransactions([]);
-    setLastResult(null);
-  }
+  // clear everything like your HTML version
+  localStorage.clear();
+  sessionStorage.clear();
+
+  setUserName(null);
+  setTransactions([]);
+  setLastResult(null);
+
+  // redirect like dashboard.html
+  window.location.href = "/index.html";
+}
 
   const handleCardChange = useCallback((d: Partial<typeof cardData>) => {
     setCardData((prev) => ({ ...prev, ...d }));
