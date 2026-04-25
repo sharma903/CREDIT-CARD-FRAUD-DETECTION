@@ -4,9 +4,10 @@ import { AlertTriangle, CheckCircle2, MapPin } from "lucide-react";
 
 interface Props {
   transactions: Transaction[];
+  onBlock: (card: string) => void;
 }
 
-export function TransactionHistory({ transactions }: Props) {
+export function TransactionHistory({ transactions ,onBlock }: Props) {
   if (transactions.length === 0) {
     return (
       <div className="text-center py-10 text-muted-foreground text-sm">
@@ -45,12 +46,23 @@ export function TransactionHistory({ transactions }: Props) {
                 <span className="hidden sm:flex items-center gap-1"><MapPin className="w-3 h-3" />{t.location}</span>
               </div>
             </div>
-            <div className="text-right shrink-0">
-              <div className="font-mono font-semibold">₹{t.amount.toLocaleString("en-IN")}</div>
-              <div className={`text-xs font-medium ${t.isFraud ? "text-destructive" : "text-success"}`}>
-                Risk {t.riskScore}
-              </div>
-            </div>
+            <div className="text-right shrink-0 space-y-1">
+  <div className="font-mono font-semibold">
+    ₹{t.amount.toLocaleString("en-IN")}
+  </div>
+
+  <div className={`text-xs font-medium ${t.isFraud ? "text-destructive" : "text-success"}`}>
+    Risk {t.riskScore}
+  </div>
+
+  {/* 🔒 BLOCK BUTTON */}
+  <button
+    onClick={() => onBlock(t.cardNumberMasked)}
+    className="text-xs px-2 py-1 bg-red-500 text-white rounded"
+  >
+    Block
+  </button>
+</div>
           </motion.div>
         ))}
       </AnimatePresence>

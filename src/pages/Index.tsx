@@ -28,10 +28,21 @@ const Index = () => {
       ? { name: localStorage.getItem("sg_user") }
       : null);
 
-  if (storedUser?.name) {
+    if (storedUser?.name) {
     setUserName(storedUser.name);
   }
 }, []);
+
+//   useEffect(() => {
+//   fetch("http://localhost:5000/api/transactions/all")
+//     .then(res => res.json())
+//     .then(data => {
+//       setTransactions(data);
+//     })
+//     .catch(err => console.log("Fetch error:", err));
+// }, []);
+
+
 
   function handleLogin(name: string) {
   // keep your existing
@@ -60,9 +71,39 @@ const Index = () => {
     setCardData((prev) => ({ ...prev, ...d }));
   }, []);
 
+  // 🔒 CHECK BLOCKED CARDS
+function isCardBlocked(cardNumber: string) {
+  const last4 = cardNumber.slice(-4);
+  const blocked = JSON.parse(localStorage.getItem("blockedCards") || "[]");
+  return blocked.includes(last4);
+}
+
+// 🔒 BLOCK CARD FUNCTION (KEEP HERE - OUTSIDE)
+function handleBlockCard(maskedNumber: string) {
+  const last4 = maskedNumber.slice(-4);
+
+  const blocked = JSON.parse(localStorage.getItem("blockedCards") || "[]");
+
+  if (!blocked.includes(last4)) {
+    blocked.push(last4);
+    localStorage.setItem("blockedCards", JSON.stringify(blocked));
+    toast.success("Card blocked successfully");
+  } else {
+    toast.error("Card already blocked");
+  }
+}
+
   function handleSubmit(data: TransactionFormData) {
-    const merchant = MERCHANTS.find((m) => m.name === data.merchantName);
-    if (!merchant) return;
+
+  // 🔒 BLOCK CHECK (ADD THIS)
+  if (isCardBlocked(data.cardNumber)) {
+    toast.error("This card is BLOCKED by bank");
+    return;
+  }
+
+  const merchant = MERCHANTS.find((m) => m.name === data.merchantName);
+
+  
 
     const ts = data.timestamp;
     const recent = transactions.map((t) => t.timestamp);
@@ -77,16 +118,49 @@ const Index = () => {
       amount: data.amount,
       location: data.location,
       timestamp: ts,
+      
       ...result,
     };
 
-    setTransactions((prev) => [...prev, tx]);
+
+  // 🔥 AUTO BLOCK IF HIGH RISK (FIXED)
+if (tx.riskScore >= 80) {
+  const last4 = data.cardNumber.slice(-4);
+
+  const blocked = JSON.parse(localStorage.getItem("blockedCards") || "[]");
+
+  if (!blocked.includes(last4)) {
+    blocked.push(last4);
+    localStorage.setItem("blockedCards", JSON.stringify(blocked));
+  }
+
+  toast.error("⚠️ High Risk Detected - Card Auto Blocked!");
+
+  return; // 🚨 THIS LINE IS THE KEY FIX
+}
+
+
+
+    fetch("http://localhost:5000/api/transactions/add", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(tx),
+}).catch(err => console.log("Save error:", err));
+
+     setTransactions((prev) => [...prev, tx]);
     setLastResult(tx);
 
     if (tx.isFraud) {
       toast.error(`Fraud detected · Risk ${tx.riskScore}`, {
-        description: tx.reasons[0],
-      });
+  description:
+    tx.riskScore >= 80
+      ? "Card has been automatically BLOCKED"
+      : tx.reasons[0],
+});
+
+
     } else {
       toast.success(`Transaction approved · Risk ${tx.riskScore}`, {
         description: `${tx.merchantName} · ₹${tx.amount.toLocaleString("en-IN")}`,
@@ -238,7 +312,9 @@ const Index = () => {
         {/* History */}
         <section className="gradient-card border border-border rounded-xl p-6 shadow-card">
           <h2 className="font-display text-xl font-semibold mb-4">Transaction History</h2>
-          <TransactionHistory transactions={transactions} />
+          <TransactionHistory 
+          transactions={transactions}
+          onBlock={handleBlockCard} />
         </section>
 
         <footer className="text-center text-xs text-muted-foreground py-6">

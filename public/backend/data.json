@@ -1,0 +1,30 @@
+[
+  {
+    "id": "1",
+    "cardholderName": "Aman Verma",
+    "cardNumberMasked": "•••• 4821",
+    "merchantName": "Amazon",
+    "productName": "Electronics",
+    "amount": 2499,
+    "location": "Delhi, India",
+    "timestamp": "2026-03-25T14:20:00.000Z",
+    "isFraud": false,
+    "riskScore": 18,
+    "confidence": 92,
+    "reasons": ["Normal amount", "Usual location"]
+  },
+  {
+    "id": "2",
+    "cardholderName": "Aman Verma",
+    "cardNumberMasked": "•••• 4821",
+    "merchantName": "Unknown Shop",
+    "productName": "Gift Card",
+    "amount": 18000,
+    "location": "Unknown",
+    "timestamp": "2026-03-28T02:10:00.000Z",
+    "isFraud": true,
+    "riskScore": 86,
+    "confidence": 78,
+    "reasons": ["High amount", "Odd hour", "Unknown location"]
+  }
+]
