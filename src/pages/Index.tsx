@@ -9,6 +9,7 @@ import { Transaction, analyzeFraud, MERCHANTS } from "@/lib/fraud-engine";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
+import { BlockedCards } from "@/components/BlockedCards";
 
 const Index = () => {
   const [userName, setUserName] = useState<string | null>("Guest");
@@ -16,6 +17,18 @@ const Index = () => {
   const [cvvFocused, setCvvFocused] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [lastResult, setLastResult] = useState<Transaction | null>(null);
+  const [blockedCards, setBlockedCards] = useState<any[]>([]);
+  
+
+  useEffect(() => {
+  const stored = JSON.parse(localStorage.getItem("blockedCards") || "[]");
+  setBlockedCards(stored);
+}, []);
+
+//   useEffect(() => {
+//   const data = JSON.parse(localStorage.getItem("blockedCards") || "[]");
+//   setBlockedCards(data);
+// }, []);
 
   useEffect(() => {
     document.title = userName ? "Dashboard" : "Dashboard";
@@ -41,7 +54,14 @@ const Index = () => {
 //     })
 //     .catch(err => console.log("Fetch error:", err));
 // }, []);
+function handleUnblock(last4: string) {
+  const updated = blockedCards.filter((b) => b.last4 !== last4);
 
+  setBlockedCards(updated);
+  localStorage.setItem("blockedCards", JSON.stringify(updated));
+
+  toast.success("Card unblocked");
+}
 
 
   function handleLogin(name: string) {
@@ -75,31 +95,54 @@ const Index = () => {
 function isCardBlocked(cardNumber: string) {
   const last4 = cardNumber.slice(-4);
   const blocked = JSON.parse(localStorage.getItem("blockedCards") || "[]");
-  return blocked.includes(last4);
+  return blocked.some((b: any) => b.last4 === last4);
 }
 
-// 🔒 BLOCK CARD FUNCTION (KEEP HERE - OUTSIDE)
 function handleBlockCard(maskedNumber: string) {
   const last4 = maskedNumber.slice(-4);
 
-  const blocked = JSON.parse(localStorage.getItem("blockedCards") || "[]");
+  setBlockedCards(prev => {
+    if (prev.find(b => b.last4 === last4)) {
+      toast.error("Card already blocked");
+      return prev;
+    }
 
-  if (!blocked.includes(last4)) {
-    blocked.push(last4);
-    localStorage.setItem("blockedCards", JSON.stringify(blocked));
+    const updated = [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        last4,
+        cardholderName: "User",
+        reason: "Manual Block",
+        reasons: ["Blocked manually by user"],
+        source: "MANUAL ACTION",
+        merchant: "Manual Action",
+        amount: 0,
+        product: "N/A",
+        location: "N/A",
+        riskScore: 0,
+        time: new Date().toISOString(),
+      }
+    ];
+
+    localStorage.setItem("blockedCards", JSON.stringify(updated));
     toast.success("Card blocked successfully");
-  } else {
-    toast.error("Card already blocked");
-  }
+
+    return updated;
+  });
 }
 
   function handleSubmit(data: TransactionFormData) {
 
-  // 🔒 BLOCK CHECK (ADD THIS)
+     // 🔒 MUST BE FIRST
   if (isCardBlocked(data.cardNumber)) {
-    toast.error("This card is BLOCKED by bank");
+    toast.error("🚫 This card is BLOCKED by bank");
     return;
   }
+
+  // rest of logic...
+
+ 
 
   const merchant = MERCHANTS.find((m) => m.name === data.merchantName);
 
@@ -109,36 +152,54 @@ function handleBlockCard(maskedNumber: string) {
     const recent = transactions.map((t) => t.timestamp);
     const result = analyzeFraud(data.amount, merchant, ts, recent, data.location);
 
-    const tx: Transaction = {
-      id: crypto.randomUUID(),
-      cardholderName: data.cardholderName,
-      cardNumberMasked: `•••• ${data.cardNumber.slice(-4)}`,
-      merchantName: data.merchantName,
-      productName: data.productName,
-      amount: data.amount,
-      location: data.location,
-      timestamp: ts,
-      
-      ...result,
-    };
+   const tx: Transaction = {
+          id: crypto.randomUUID(),
+          cardholderName: data.cardholderName,
+          cardNumberMasked: `•••• ${data.cardNumber.slice(-4)}`,
+          merchantName: data.merchantName,
+          productName: data.productName,
+          amount: data.amount,
+          location: data.location,
+          timestamp: ts,
+          ...result,
+        };
 
-
-  // 🔥 AUTO BLOCK IF HIGH RISK (FIXED)
+    
+// 🔥 AUTO BLOCK IF HIGH RISK (FIXED)
 if (tx.riskScore >= 80) {
-  const last4 = data.cardNumber.slice(-4);
+const last4 = data.cardNumber.slice(-4);
 
-  const blocked = JSON.parse(localStorage.getItem("blockedCards") || "[]");
+setBlockedCards(prev => {
+  if (prev.find(b => b.last4 === last4)) return prev;
 
-  if (!blocked.includes(last4)) {
-    blocked.push(last4);
-    localStorage.setItem("blockedCards", JSON.stringify(blocked));
+  const updated = [
+  ...prev,
+  {
+    id: crypto.randomUUID(),
+    last4,
+    cardholderName: data.cardholderName,   // ✅ FIX (not tx)
+    reason: "High Risk Fraud",
+    reasons: tx.reasons,
+    source: "AUTO FRAUD SYSTEM",
+    riskScore: tx.riskScore,
+    merchant: tx.merchantName,
+    amount: tx.amount,
+    product: data.productName,             // ✅ FIX
+    location: data.location,               // ✅ FIX
+    time: new Date().toISOString(),
   }
+];
+
+  localStorage.setItem("blockedCards", JSON.stringify(updated));
+  return updated;
+});
 
   toast.error("⚠️ High Risk Detected - Card Auto Blocked!");
-
-  return; // 🚨 THIS LINE IS THE KEY FIX
+  return;
 }
 
+console.log("Checking block for:", data.cardNumber.slice(-4));
+console.log("Blocked list:", localStorage.getItem("blockedCards"));
 
 
     fetch("http://localhost:5000/api/transactions/add", {
@@ -317,8 +378,20 @@ if (tx.riskScore >= 80) {
           onBlock={handleBlockCard} />
         </section>
 
+        {/* 🔥 ADD THIS HERE */}
+        <section className="gradient-card border border-border rounded-xl p-6 shadow-card">
+          <h2 className="font-display text-xl font-semibold mb-4">
+            Blocked Cards 
+          </h2>
+
+      <BlockedCards 
+        blockedCards={blockedCards}
+        onUnblock={handleUnblock}
+      />
+        </section>
+
         <footer className="text-center text-xs text-muted-foreground py-6">
-          SecureGuard · AI fraud detection demo · Data is stored locally in your browser.
+           SECUREGUARD FRAUD DETECTION 
         </footer>
       </main>
     </div>
