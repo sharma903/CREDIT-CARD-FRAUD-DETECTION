@@ -123,7 +123,7 @@ export function TransactionForm({ onChange, onCvvFocus, onSubmit }: Props) {
             onBlur={() => onCvvFocus(false)}
             placeholder="123"
             inputMode="numeric"
-            maxLength={4}
+            maxLength={3}
             required
           />
         </div>

@@ -4,7 +4,7 @@ import { AlertTriangle, CheckCircle2, MapPin } from "lucide-react";
 
 interface Props {
   transactions: Transaction[];
-  onBlock: (card: string) => void;
+  onBlock: (tx: Transaction) => void;
 }
 
 export function TransactionHistory({ transactions ,onBlock }: Props) {
@@ -57,7 +57,7 @@ export function TransactionHistory({ transactions ,onBlock }: Props) {
 
   {/* 🔒 BLOCK BUTTON */}
   <button
-    onClick={() => onBlock(t.cardNumberMasked)}
+    onClick={() => onBlock(t)}
     className="text-xs px-2 py-1 bg-red-500 text-white rounded"
   >
     Block

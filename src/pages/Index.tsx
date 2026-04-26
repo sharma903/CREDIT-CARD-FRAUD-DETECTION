@@ -98,8 +98,11 @@ function isCardBlocked(cardNumber: string) {
   return blocked.some((b: any) => b.last4 === last4);
 }
 
-function handleBlockCard(maskedNumber: string) {
-  const last4 = maskedNumber.slice(-4);
+function handleBlockCard(tx: any) {
+  const last4 = tx.cardNumberMasked.slice(-4);
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const email = user.email || "test@gmail.com";
 
   setBlockedCards(prev => {
     if (prev.find(b => b.last4 === last4)) {
@@ -112,25 +115,42 @@ function handleBlockCard(maskedNumber: string) {
       {
         id: crypto.randomUUID(),
         last4,
-        cardholderName: "User",
+        cardholderName: tx.cardholderName,   // ✅ FIXED
         reason: "Manual Block",
         reasons: ["Blocked manually by user"],
         source: "MANUAL ACTION",
-        merchant: "Manual Action",
-        amount: 0,
-        product: "N/A",
-        location: "N/A",
-        riskScore: 0,
+        merchant: tx.merchantName,
+        amount: tx.amount,
+        product: tx.productName,             // ✅ FIXED
+        location: tx.location,               // ✅ FIXED
+        riskScore: tx.riskScore,
         time: new Date().toISOString(),
       }
     ];
 
     localStorage.setItem("blockedCards", JSON.stringify(updated));
-    toast.success("Card blocked successfully");
+
+    // EMAIL
+    fetch("http://localhost:5000/api/block-card", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        last4,
+        location: tx.location,
+        amount: tx.amount,
+        merchant: tx.merchantName
+      }),
+    }).catch(err => console.log("Email error:", err));
+
+    toast.success("Card blocked & email sent");
 
     return updated;
   });
 }
+
 
   function handleSubmit(data: TransactionFormData) {
 
