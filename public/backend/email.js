@@ -8,12 +8,14 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+
+
 function sendBlockEmail(email, last4, location, amount, merchant) {
   return transporter.sendMail({
     from: "SecureGuard <yourgmail@gmail.com>",
     to: email,
     subject: "🚫 Card Blocked Alert",
-    html: `
+html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,19 +36,12 @@ function sendBlockEmail(email, last4, location, amount, merchant) {
           <!-- HEADER -->
           <!-- HEADER -->
 <tr>
-  <td style="background:#0f172a; padding:22px; text-align:center; color:#ffffff;">
+          <td style="background:#0f172a; padding:22px; text-align:center; color:#38BDF8;">
+          <div style="font-size:50px; font-weight:bold; color:#38BDF8;">
+              SecureGuard
+            </div>
 
-    <img 
-      src="http://localhost:8080/logo.ico"
-      width="90"
-      style="display:block; margin:0 auto 10px auto;"
-      "
-    />
-<div style="font-size:20px; font-weight:bold; color:#ffffff;">
-      SecureGuard
-    </div>
-
-  </td>
+          </td>
 </tr>
 
           <!-- BODY -->
@@ -93,13 +88,27 @@ function sendBlockEmail(email, last4, location, amount, merchant) {
               </div>
 
               <!-- BUTTON -->
-              <div style="text-align:center; margin-top:25px;">
-                <a href="https://your-support-link.com"
-                   style="display:inline-block; background:#2563eb; color:#ffffff; text-decoration:none;
-                          padding:12px 22px; border-radius:5px; font-size:14px; font-weight:bold;">
-                  Contact Support
-                </a>
-              </div>
+              <!-- CONTACT SUPPORT SECTION -->
+                  <div style="margin-top:25px; padding:15px; background:#f8fafc; border-radius:6px; text-align:center;">
+
+                    <h3 style="margin:0 0 10px; font-size:16px; color:#111827;">
+                      Contact Support
+                    </h3>
+
+                    <p style="margin:5px 0; font-size:13px; color:#374151;">
+                      📧 Email: nihalsharma967@gmail.com
+                    </p>
+
+                    <p style="margin:5px 0; font-size:13px; color:#374151;">
+                      📱 Mobile: 9039815061
+                    </p>
+
+                    <p style="margin-top:12px; font-size:13px; color:#6b7280;">
+                      Regards,<br>
+                      <b>SecureGuard Team</b>
+                    </p>
+
+                  </div>
 
             </td>
           </tr>
