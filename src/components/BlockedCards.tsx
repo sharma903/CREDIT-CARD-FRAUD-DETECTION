@@ -5,6 +5,7 @@ import { AlertTriangle, MapPin } from "lucide-react";
 interface Props {
   blockedCards: any[];
   onUnblock: (last4: string) => void;
+  role: "admin" | "employee";   // ✅ CORRECT
 }
 
 export function BlockedCards({ blockedCards, onUnblock }: Props) {

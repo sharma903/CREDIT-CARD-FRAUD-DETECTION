@@ -5,9 +5,10 @@ import { AlertTriangle, CheckCircle2, MapPin } from "lucide-react";
 interface Props {
   transactions: Transaction[];
   onBlock: (tx: Transaction) => void;
+   role: "admin" | "employee";   // ✅ ADD
 }
 
-export function TransactionHistory({ transactions ,onBlock }: Props) {
+export function TransactionHistory({ transactions ,onBlock, role }: Props) {
   if (transactions.length === 0) {
     return (
       <div className="text-center py-10 text-muted-foreground text-sm">
@@ -55,13 +56,14 @@ export function TransactionHistory({ transactions ,onBlock }: Props) {
     Risk {t.riskScore}
   </div>
 
-  {/* 🔒 BLOCK BUTTON */}
+  {role === "admin" && (
   <button
     onClick={() => onBlock(t)}
     className="text-xs px-2 py-1 bg-red-500 text-white rounded"
   >
     Block
   </button>
+)}
 </div>
           </motion.div>
         ))}

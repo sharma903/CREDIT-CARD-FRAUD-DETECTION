@@ -22,13 +22,22 @@ exports.register = async (req, res) => {
 
         const hashed = await bcrypt.hash(password, 10);
 
-        const user = await User.create({ name, email, password: hashed });
+                    // 🔥 Decide role based on email
+            const role = email === "admin@gmail.com" ? "admin" : "employee";
+
+            // ✅ Create user with role
+            const user = await User.create({ 
+                name, 
+                email, 
+                password: hashed,
+                role : user.role
+            });
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
         res.json({
             message: "Registered successfully",
-            user: { name: user.name, email: user.email },
+            user: { name: user.name, email: user.email, role: user.role },
             token
         });
 
@@ -167,7 +176,8 @@ exports.login = async (req, res) => {
             token,
             user: {
                 name: user.name,
-                email: user.email
+                email: user.email,
+                role: user.role
             }
         });
 

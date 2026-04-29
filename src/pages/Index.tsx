@@ -12,6 +12,12 @@ import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { BlockedCards } from "@/components/BlockedCards";
 import { analyzeWithHistory } from "@/lib/predictor";
 
+type UserType = {
+  name?: string;
+  email?: string;
+  role?: "admin" | "employee";
+};
+
 const Index = () => {
   const [userName, setUserName] = useState<string | null>("Guest");
   const [cardData, setCardData] = useState({ cardholderName: "", cardNumber: "", expiry: "", cvv: "" });
@@ -19,6 +25,7 @@ const Index = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [lastResult, setLastResult] = useState<Transaction | null>(null);
   const [blockedCards, setBlockedCards] = useState<any[]>([]);
+  const user: UserType = JSON.parse(localStorage.getItem("user") || "{}");
   
 
   useEffect(() => {
@@ -77,7 +84,12 @@ function handleUnblock(last4: string) {
   localStorage.setItem("sg_user", name);
 
   // ADD this (important for consistency with HTML + backend)
-  localStorage.setItem("user", JSON.stringify({ name }));
+  const existingUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+localStorage.setItem("user", JSON.stringify({
+  ...existingUser,
+  name
+}));
 
   setUserName(name);
 }
@@ -272,8 +284,10 @@ console.log("Blocked list:", localStorage.getItem("blockedCards"));
   body: JSON.stringify(tx),
 }).catch(err => console.log("Save error:", err));
 
-     setTransactions((prev) => [...prev, tx]);
+     setTransactions((prev) => [tx , ...prev]);
     setLastResult(tx);
+
+    
 
     // ✅ SAVE TO LOCAL STORAGE (VERY IMPORTANT)
 const updatedHistory = [...transactions, tx];
@@ -441,7 +455,8 @@ localStorage.setItem("transactions", JSON.stringify(updatedHistory));
           <h2 className="font-display text-xl font-semibold mb-4">Transaction History</h2>
           <TransactionHistory 
           transactions={transactions}
-          onBlock={handleBlockCard} />
+          onBlock={handleBlockCard}
+          role={user.role || "employee"} />
         </section>
 
         {/* 🔥 ADD THIS HERE */}
@@ -453,6 +468,7 @@ localStorage.setItem("transactions", JSON.stringify(updatedHistory));
       <BlockedCards 
         blockedCards={blockedCards}
         onUnblock={handleUnblock}
+        role={user.role || "employee"}
       />
         </section>
 
