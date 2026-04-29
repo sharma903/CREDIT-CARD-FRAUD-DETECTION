@@ -41,6 +41,7 @@ export const MERCHANT_PRODUCTS: Record<string, string[]> = {
 export type Transaction = {
   id: string;
   cardholderName: string;
+  cardNumber?: string;
   cardNumberMasked: string;
   merchantName: string;
   productName: string;

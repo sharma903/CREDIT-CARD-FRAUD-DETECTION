@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { BlockedCards } from "@/components/BlockedCards";
+import { analyzeWithHistory } from "@/lib/predictor";
 
 const Index = () => {
   const [userName, setUserName] = useState<string | null>("Guest");
@@ -46,14 +47,21 @@ const Index = () => {
   }
 }, []);
 
-//   useEffect(() => {
-//   fetch("http://localhost:5000/api/transactions/all")
-//     .then(res => res.json())
-//     .then(data => {
-//       setTransactions(data);
-//     })
-//     .catch(err => console.log("Fetch error:", err));
-// }, []);
+ useEffect(() => {
+  fetch("http://localhost:5000/api/transactions/all")
+    .then(res => res.json())
+    .then(data => {
+      // 🔥 FIX: convert string → Date
+      const fixedData = data.map((t: any) => ({
+        ...t,
+        timestamp: new Date(t.timestamp),
+      }));
+
+      setTransactions(fixedData);
+    })
+    .catch(err => console.log("Fetch error:", err));
+}, []);
+
 function handleUnblock(last4: string) {
   const updated = blockedCards.filter((b) => b.last4 !== last4);
 
@@ -166,6 +174,11 @@ function handleBlockCard(tx: any) {
 
   const merchant = MERCHANTS.find((m) => m.name === data.merchantName);
 
+  if (!merchant) {
+  toast.error("Invalid merchant");
+  return;
+}
+
   
 
     const ts = data.timestamp;
@@ -175,6 +188,7 @@ function handleBlockCard(tx: any) {
    const tx: Transaction = {
           id: crypto.randomUUID(),
           cardholderName: data.cardholderName,
+          cardNumber: data.cardNumber, // ✅ ADD THIS
           cardNumberMasked: `•••• ${data.cardNumber.slice(-4)}`,
           merchantName: data.merchantName,
           productName: data.productName,
@@ -183,36 +197,64 @@ function handleBlockCard(tx: any) {
           timestamp: ts,
           ...result,
         };
+  
+  // 🔥 GET PREVIOUS TRANSACTIONS
+const history = transactions;
+
+// 🔥 RUN PREDICTION (based on last month)
+const prediction = analyzeWithHistory(tx, history);
+
+// 🔥 UPDATE RISK SCORE
+tx.riskScore += prediction.extraRisk;
+tx.reasons = [...tx.reasons, ...prediction.reasons];
 
     
 // 🔥 AUTO BLOCK IF HIGH RISK (FIXED)
 if (tx.riskScore >= 80) {
-const last4 = data.cardNumber.slice(-4);
+  const last4 = data.cardNumber.slice(-4);
 
-setBlockedCards(prev => {
-  if (prev.find(b => b.last4 === last4)) return prev;
+  setBlockedCards(prev => {
+    if (prev.find(b => b.last4 === last4)) return prev;
 
-  const updated = [
-  ...prev,
-  {
-    id: crypto.randomUUID(),
-    last4,
-    cardholderName: data.cardholderName,   // ✅ FIX (not tx)
-    reason: "High Risk Fraud",
-    reasons: tx.reasons,
-    source: "AUTO FRAUD SYSTEM",
-    riskScore: tx.riskScore,
-    merchant: tx.merchantName,
-    amount: tx.amount,
-    product: data.productName,             // ✅ FIX
-    location: data.location,               // ✅ FIX
-    time: new Date().toISOString(),
-  }
-];
+    const updated = [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        last4,
+        cardholderName: data.cardholderName,
+        reason: "High Risk Fraud",
+        reasons: tx.reasons,
+        source: "AUTO FRAUD SYSTEM",
+        riskScore: tx.riskScore,
+        merchant: tx.merchantName,
+        amount: tx.amount,
+        product: data.productName,
+        location: data.location,
+        time: new Date().toISOString(),
+      }
+    ];
 
-  localStorage.setItem("blockedCards", JSON.stringify(updated));
-  return updated;
-});
+    localStorage.setItem("blockedCards", JSON.stringify(updated));
+    return updated;
+  });
+
+  // ✅ ADD THIS PART
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const email = user.email || "test@gmail.com";
+
+  fetch("http://localhost:5000/api/block-card", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      last4,
+      location: data.location,
+      amount: tx.amount,
+      merchant: tx.merchantName
+    }),
+  }).catch(err => console.log("Auto email error:", err));
 
   toast.error("⚠️ High Risk Detected - Card Auto Blocked!");
   return;
@@ -232,6 +274,10 @@ console.log("Blocked list:", localStorage.getItem("blockedCards"));
 
      setTransactions((prev) => [...prev, tx]);
     setLastResult(tx);
+
+    // ✅ SAVE TO LOCAL STORAGE (VERY IMPORTANT)
+const updatedHistory = [...transactions, tx];
+localStorage.setItem("transactions", JSON.stringify(updatedHistory));
 
     if (tx.isFraud) {
       toast.error(`Fraud detected · Risk ${tx.riskScore}`, {

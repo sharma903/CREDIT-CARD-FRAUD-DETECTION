@@ -18,6 +18,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/transactions", require("./routes/transactionRoutes"));
 
 // ✅ EMAIL ROUTE (ADD HERE ONLY ONCE)
 app.post("/api/block-card", async (req, res) => {

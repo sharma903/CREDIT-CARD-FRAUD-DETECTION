@@ -256,7 +256,45 @@ function sendTransactionReceipt(email, last4, location, amount, merchant, status
   });
 }
 
+// ✅ NEW FUNCTION
+const sendWelcomeEmail = async (email, name) => {
+  return transporter.sendMail({
+    from: `"Your App" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "🎉 Welcome to Our Platform",
+    html: `
+      <div style="font-family: Arial; background:#f4f6f8; padding:20px;">
+        <div style="max-width:600px; margin:auto; background:white; border-radius:10px; padding:20px;">
+          
+          <h2 style="color:#4CAF50;">Welcome, ${name} 👋</h2>
+          
+          <p>We're excited to have you on board.</p>
+
+          <div style="background:#f9f9f9; padding:15px; border-radius:8px;">
+            <p><b>🚀 What you can do now:</b></p>
+            <ul>
+              <li>Access your dashboard</li>
+              <li>Manage your account</li>
+              <li>Explore features</li>
+            </ul>
+          </div>
+
+          <br>
+
+          <a href="http://localhost:8080"
+             style="display:inline-block; padding:10px 15px; background:#4CAF50; color:white; text-decoration:none; border-radius:5px;">
+             Go to Dashboard
+          </a>
+
+          <p style="margin-top:20px;">Best Regards,<br>Your Team</p>
+        </div>
+      </div>
+    `
+  });
+};
+
 module.exports = {
   sendBlockEmail,
-  sendTransactionReceipt
+  sendTransactionReceipt,
+  sendWelcomeEmail
 };
