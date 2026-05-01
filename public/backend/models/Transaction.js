@@ -10,7 +10,10 @@ const transactionSchema = new mongoose.Schema({
   timestamp: Date,
   riskScore: Number,
   isFraud: Boolean,
+  isBlocked: { type: Boolean, default: false },
   reasons: [String]
 }, { timestamps: true });
+
+
 
 module.exports = mongoose.model("Transaction", transactionSchema);

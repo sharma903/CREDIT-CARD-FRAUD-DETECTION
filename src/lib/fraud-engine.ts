@@ -52,6 +52,7 @@ export type Transaction = {
   isFraud: boolean;
   confidence: number;
   reasons: string[];
+  isBlocked?: boolean;
 };
 
 export type FraudResult = {
@@ -86,7 +87,7 @@ export function analyzeFraud(
 
   // Time-based rule
   if (!safe) {
-    riskScore += 45;
+    riskScore += 25;
     confidence += 25;
     reasons.push(`Suspicious hour: ${formatHour(hour)} is outside safe window (5 AM – 12 AM)`);
   } else {
@@ -94,12 +95,26 @@ export function analyzeFraud(
   }
 
   // Velocity rule: count transactions in last 60s including this one
+
+    // 🔥 NEW RULE: 2 HIGH VALUE TRANSACTIONS (within 2 minutes)
+  const twoMinAgo = timestamp.getTime() - 120_000;
+
+  const recentHighTx = recentTimestamps.filter((t: any) => {
+    return t.getTime() >= twoMinAgo;
+  }).length;
+
+  if (amount > 20000 && recentHighTx >= 1) {
+    riskScore += 50;
+    confidence += 25;
+    reasons.push("🚨 Multiple high-value transactions detected within 2 minutes");
+  } 
+  
   const oneMinAgo = timestamp.getTime() - 60_000;
   const recentInWindow = recentTimestamps.filter(t => t.getTime() >= oneMinAgo).length;
   const totalInMinute = recentInWindow + 1;
-  if (totalInMinute >= 1 && totalInMinute <= 3 && recentInWindow >= 1) {
+  if (totalInMinute >= 3 && totalInMinute <= 5) {
     // 1-3 in 1 minute (per spec: very low score = fraud)
-    riskScore += 35;
+    riskScore += 20;
     confidence += 20;
     reasons.push(`Velocity spike: ${totalInMinute} transactions in 1 minute`);
   }
@@ -141,11 +156,16 @@ export function analyzeFraud(
   confidence = Math.min(99, Math.max(20, confidence));
 
   // If confidence is high, increase risk score (per user spec)
-  if (confidence >= 75) {
-    riskScore = Math.min(100, riskScore + 10);
-  }
+  // if (confidence >= 75) {
+  //   riskScore = Math.min(100, riskScore + 10);
+  // }
 
-  const isFraud = riskScore >= 55 || !safe || (recentInWindow >= 1 && totalInMinute <= 3);
+  // 🔥 FINAL FRAUD LOGIC (BEST VERSION)
+
+const isFraud =
+  riskScore >= 70 ||          // strong threshold
+  !safe ||                    // unsafe hour
+  (amount > 20000 && recentHighTx >= 1); // high-value repeat
 
   return { riskScore, isFraud, confidence, reasons };
 }

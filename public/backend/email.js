@@ -259,7 +259,7 @@ function sendTransactionReceipt(email, last4, location, amount, merchant, status
 // ✅ NEW FUNCTION
 const sendWelcomeEmail = async (email, name) => {
   return transporter.sendMail({
-    from: `"Your App" <${process.env.EMAIL_USER}>`,
+    from: `"SecureGuard" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "🎉 Welcome to Our Platform",
     html: `

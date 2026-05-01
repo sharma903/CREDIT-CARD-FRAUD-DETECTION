@@ -1,26 +1,16 @@
 const jwt = require("jsonwebtoken");
 
-const authMiddleware = (req, res, next) => {
-    try {
-        const token = req.headers.authorization;
+module.exports = (req, res, next) => {
+  const token = req.header("Authorization")?.replace("Bearer ", "");
 
-        // ❌ No token
-        if (!token) {
-            return res.status(401).json({ error: "Access denied. No token provided." });
-        }
+  if (!token) return res.status(401).json({ error: "No token" });
 
-        // ✅ Remove "Bearer "
-        const cleanToken = token.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        const decoded = jwt.verify(cleanToken, process.env.JWT_SECRET);
-
-        req.user = decoded; // attach user id
-
-        next(); // go to next controller
-
-    } catch (err) {
-        return res.status(401).json({ error: "Invalid or expired token" });
-    }
+    req.user = decoded; // ✅ now includes role
+    next();
+  } catch (err) {
+    res.status(401).json({ error: "Invalid token" });
+  }
 };
-
-module.exports = authMiddleware;

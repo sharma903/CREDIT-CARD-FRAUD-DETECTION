@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 const sendEmail = async (to, subject, htmlContent) => {
     try {
         const info = await transporter.sendMail({
-            from: `"Your App" <${process.env.EMAIL_USER}>`,
+            from: `"SecureGuard" <${process.env.EMAIL_USER}>`,
             to: to,
             subject: subject,
             html: htmlContent,   // ✅ MUST BE html

@@ -25,12 +25,27 @@ const Index = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [lastResult, setLastResult] = useState<Transaction | null>(null);
   const [blockedCards, setBlockedCards] = useState<any[]>([]);
-  const user: UserType = JSON.parse(localStorage.getItem("user") || "{}");
+  const [user, setUser] = useState<UserType>({});
+
+useEffect(() => {
+  const stored = JSON.parse(localStorage.getItem("user") || "{}");
+  setUser(stored);
+}, []);
   
 
   useEffect(() => {
-  const stored = JSON.parse(localStorage.getItem("blockedCards") || "[]");
-  setBlockedCards(stored);
+  fetch("http://localhost:5000/api/blocked-cards")
+    .then(res => res.json())
+    .then(data => {
+      setBlockedCards(data);
+    })
+    .catch(err => {
+      console.log("Blocked cards fetch error:", err);
+
+      // fallback (optional)
+      const stored = JSON.parse(localStorage.getItem("blockedCards") || "[]");
+      setBlockedCards(stored);
+    });
 }, []);
 
 //   useEffect(() => {
@@ -56,20 +71,48 @@ const Index = () => {
 
  useEffect(() => {
   fetch("http://localhost:5000/api/transactions/all")
-    .then(res => res.json())
-    .then(data => {
-      // 🔥 FIX: convert string → Date
-      const fixedData = data.map((t: any) => ({
+  .then(res => res.json())
+  .then(data => {
+    const fixedData = data
+      .map((t: any) => ({
         ...t,
         timestamp: new Date(t.timestamp),
-      }));
+      }))
+      .sort(
+        (a: any, b: any) =>
+          new Date(b.timestamp).getTime() -
+          new Date(a.timestamp).getTime()
+      );
 
-      setTransactions(fixedData);
-    })
+    setTransactions(fixedData);
+  })
     .catch(err => console.log("Fetch error:", err));
 }, []);
 
+// 🔥 SYNC BLOCKED CARDS ACROSS TABS + REALTIME UI FIX
+useEffect(() => {
+  const syncBlockedCards = () => {
+    const latest = JSON.parse(localStorage.getItem("blockedCards") || "[]");
+    setBlockedCards(latest);
+  };
+
+  window.addEventListener("storage", syncBlockedCards);
+  window.addEventListener("focus", syncBlockedCards);
+
+  return () => {
+    window.removeEventListener("storage", syncBlockedCards);
+    window.removeEventListener("focus", syncBlockedCards);
+  };
+}, []);
+
 function handleUnblock(last4: string) {
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  if (currentUser.role !== "admin") {
+    toast.error("Unauthorized action");
+    return;
+  }
+
   const updated = blockedCards.filter((b) => b.last4 !== last4);
 
   setBlockedCards(updated);
@@ -130,23 +173,27 @@ function handleBlockCard(tx: any) {
       return prev;
     }
 
-    const updated = [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        last4,
-        cardholderName: tx.cardholderName,   // ✅ FIXED
-        reason: "Manual Block",
-        reasons: ["Blocked manually by user"],
-        source: "MANUAL ACTION",
-        merchant: tx.merchantName,
-        amount: tx.amount,
-        product: tx.productName,             // ✅ FIXED
-        location: tx.location,               // ✅ FIXED
-        riskScore: tx.riskScore,
-        time: new Date().toISOString(),
-      }
-    ];
+
+const updated = [
+  ...prev,
+  {
+    id: crypto.randomUUID(),
+    last4,
+    cardholderName: tx.cardholderName,
+    cardNumber: tx.cardNumber,   // ✅ ADD
+    merchant: tx.merchantName,
+    product: tx.productName,
+    amount: tx.amount,
+    location: tx.location,
+    riskScore: tx.riskScore,
+    reason: "Manual Block",
+    reasons: ["Blocked manually by user"],
+    source: "MANUAL ACTION",
+    time: tx.timestamp || new Date().toISOString(), // ✅ USE REAL TIME
+  }
+]; 
+
+
 
     localStorage.setItem("blockedCards", JSON.stringify(updated));
 
@@ -217,34 +264,47 @@ const history = transactions;
 const prediction = analyzeWithHistory(tx, history);
 
 // 🔥 UPDATE RISK SCORE
-tx.riskScore += prediction.extraRisk;
+tx.riskScore += Math.min(prediction.extraRisk, 15);
 tx.reasons = [...tx.reasons, ...prediction.reasons];
 
     
 // 🔥 AUTO BLOCK IF HIGH RISK (FIXED)
 if (tx.riskScore >= 80) {
+  tx.isBlocked = true;   // ✅ IMPORTANT
+  tx.isFraud = true;
+
   const last4 = data.cardNumber.slice(-4);
 
   setBlockedCards(prev => {
     if (prev.find(b => b.last4 === last4)) return prev;
 
     const updated = [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        last4,
-        cardholderName: data.cardholderName,
-        reason: "High Risk Fraud",
-        reasons: tx.reasons,
-        source: "AUTO FRAUD SYSTEM",
-        riskScore: tx.riskScore,
-        merchant: tx.merchantName,
-        amount: tx.amount,
-        product: data.productName,
-        location: data.location,
-        time: new Date().toISOString(),
-      }
-    ];
+  ...prev,
+  {
+    id: crypto.randomUUID(),
+    last4,
+    cardholderName: data.cardholderName,
+    cardNumber: data.cardNumber,   // ✅ ADD THIS
+    merchant: tx.merchantName,     // ✅ SAME NAMING
+    product: data.productName,     // ✅ SAME NAMING
+    amount: tx.amount,
+    location: data.location,
+    riskScore: tx.riskScore,
+    reason: "High Risk Fraud",
+    reasons: tx.reasons,
+    source: "AUTO FRAUD SYSTEM",
+
+    time: tx.timestamp || new Date().toISOString(),
+  }
+];
+
+  fetch("http://localhost:5000/api/blocked-cards/add", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(updated[updated.length - 1]),
+}).catch(err => console.log("Auto DB save error:", err));
 
     localStorage.setItem("blockedCards", JSON.stringify(updated));
     return updated;
@@ -290,7 +350,7 @@ console.log("Blocked list:", localStorage.getItem("blockedCards"));
     
 
     // ✅ SAVE TO LOCAL STORAGE (VERY IMPORTANT)
-const updatedHistory = [...transactions, tx];
+const updatedHistory = [tx , ...transactions];
 localStorage.setItem("transactions", JSON.stringify(updatedHistory));
 
     if (tx.isFraud) {
@@ -429,7 +489,9 @@ localStorage.setItem("transactions", JSON.stringify(updatedHistory));
           <div className="gradient-card border border-border rounded-xl p-6 shadow-card">
             <h2 className="font-display text-xl font-semibold mb-4">Transaction Details</h2>
             <TransactionForm
-              onChange={handleCardChange}
+              onChange={(d) =>
+                setCardData((prev) => ({ ...prev, ...d }))
+              }
               onCvvFocus={setCvvFocused}
               onSubmit={handleSubmit}
             />
@@ -456,6 +518,7 @@ localStorage.setItem("transactions", JSON.stringify(updatedHistory));
           <TransactionHistory 
           transactions={transactions}
           onBlock={handleBlockCard}
+          onUnblock={handleUnblock}   // ✅ ADD THIS
           role={user.role || "employee"} />
         </section>
 

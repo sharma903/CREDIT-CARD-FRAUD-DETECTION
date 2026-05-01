@@ -23,14 +23,16 @@ exports.register = async (req, res) => {
         const hashed = await bcrypt.hash(password, 10);
 
                     // 🔥 Decide role based on email
-            const role = email === "admin@gmail.com" ? "admin" : "employee";
+            const ADMIN_EMAIL = "nihalsharma967@gmail.com";
+
+            const role = email === process.env.ADMIN_EMAIL ? "admin" : "employee";
 
             // ✅ Create user with role
             const user = await User.create({ 
                 name, 
                 email, 
                 password: hashed,
-                role : user.role
+                role : role
             });
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -58,7 +60,7 @@ exports.login = async (req, res) => {
         if (!match) return res.status(400).json({ error: "Wrong password" });
 
         const token = jwt.sign(
-            { id: user._id },
+            { id: user._id, role: user.role},
             process.env.JWT_SECRET,
             { expiresIn: "1d" }
         );
