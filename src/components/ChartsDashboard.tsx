@@ -19,7 +19,7 @@ const TOOLTIP_STYLE = {
 
 export function ChartsDashboard({ transactions }: Props) {
   // Risk score over time (last 20)
-  const riskData = transactions.slice(-20).map((t, i) => ({
+  const riskData = transactions.slice(0,20).reverse().map((t, i) => ({
     idx: i + 1,
     risk: t.riskScore,
     confidence: t.confidence,
@@ -34,7 +34,7 @@ export function ChartsDashboard({ transactions }: Props) {
   ];
 
   // Amount per transaction bar
-  const amountData = transactions.slice(-10).map((t, i) => ({
+  const amountData = transactions.slice(0,10).reverse().map((t, i) => ({
     idx: `T${i + 1}`,
     amount: t.amount,
     fraud: t.isFraud,
@@ -47,7 +47,7 @@ export function ChartsDashboard({ transactions }: Props) {
     fraud: 0,
   }));
   transactions.forEach((t) => {
-    const h = t.timestamp.getHours();
+    const h = new Date(t.timestamp).getHours();
     hourBuckets[h].count += 1;
     if (t.isFraud) hourBuckets[h].fraud += 1;
   });

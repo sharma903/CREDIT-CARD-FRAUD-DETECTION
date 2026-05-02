@@ -243,7 +243,7 @@ const updated = [
     const ts = data.timestamp;
     const recent = transactions.map((t) => t.timestamp);
     const result = analyzeFraud(data.amount, merchant, ts, recent, data.location);
-
+ 
    const tx: Transaction = {
           id: crypto.randomUUID(),
           cardholderName: data.cardholderName,
@@ -267,11 +267,17 @@ const prediction = analyzeWithHistory(tx, history);
 tx.riskScore += Math.min(prediction.extraRisk, 15);
 tx.reasons = [...tx.reasons, ...prediction.reasons];
 
-    
+// setTransactions((prev) => [tx, ...prev]);
+// setLastResult(tx);
+
 // 🔥 AUTO BLOCK IF HIGH RISK (FIXED)
 if (tx.riskScore >= 80) {
   tx.isBlocked = true;   // ✅ IMPORTANT
   tx.isFraud = true;
+
+  // ✅ ADD HERE (after tx is ready)
+setTransactions((prev) => [tx, ...prev]);
+setLastResult(tx);
 
   const last4 = data.cardNumber.slice(-4);
 
@@ -344,8 +350,8 @@ console.log("Blocked list:", localStorage.getItem("blockedCards"));
   body: JSON.stringify(tx),
 }).catch(err => console.log("Save error:", err));
 
-     setTransactions((prev) => [tx , ...prev]);
-    setLastResult(tx);
+     
+    
 
     
 
