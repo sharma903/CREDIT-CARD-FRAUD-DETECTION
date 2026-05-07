@@ -1,6 +1,7 @@
 import { Transaction } from "@/lib/fraud-engine";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { motion } from "framer-motion";
+import { useMemo } from "react";
 
 interface Props {
   transactions: Transaction[];
@@ -19,44 +20,75 @@ const TOOLTIP_STYLE = {
 
 export function ChartsDashboard({ transactions }: Props) {
   // Risk score over time (last 20)
-  const riskData = transactions.slice(0,20).reverse().map((t, i) => ({
-    idx: i + 1,
-    risk: t.riskScore,
-    confidence: t.confidence,
-  }));
+  const riskData = useMemo(() => {
+  return transactions
+    .slice(0, 20)
+    .reverse()
+    .map((t, i) => ({
+      idx: i + 1,
+      risk: t.riskScore,
+      confidence: t.confidence,
+    }));
+}, [transactions]);
 
-  // Fraud vs safe pie
+const pieData = useMemo(() => {
   const fraudCount = transactions.filter((t) => t.isFraud).length;
   const safeCount = transactions.length - fraudCount;
-  const pieData = [
-    { name: "Safe", value: safeCount, color: "hsl(var(--success))" },
-    { name: "Fraud", value: fraudCount, color: "hsl(var(--destructive))" },
-  ];
 
-  // Amount per transaction bar
-  const amountData = transactions.slice(0,10).reverse().map((t, i) => ({
-    idx: `T${i + 1}`,
-    amount: t.amount,
-    fraud: t.isFraud,
-  }));
+  return [
+    {
+      name: "Safe",
+      value: safeCount,
+      color: "hsl(var(--success))",
+    },
+    {
+      name: "Fraud",
+      value: fraudCount,
+      color: "hsl(var(--destructive))",
+    },
+  ];
+}, [transactions]);
+
+const amountData = useMemo(() => {
+  return transactions
+    .slice(0, 10)
+    .reverse()
+    .map((t, i) => ({
+      idx: `T${i + 1}`,
+      amount: t.amount,
+      fraud: t.isFraud,
+    }));
+}, [transactions]);
 
   // Hour distribution (0-23)
-  const hourBuckets = Array.from({ length: 24 }, (_, h) => ({
+  const hourBuckets = useMemo(() => {
+  const buckets = Array.from({ length: 24 }, (_, h) => ({
     hour: h,
     count: 0,
     fraud: 0,
   }));
+
   transactions.forEach((t) => {
     const h = new Date(t.timestamp).getHours();
-    hourBuckets[h].count += 1;
-    if (t.isFraud) hourBuckets[h].fraud += 1;
+
+    buckets[h].count += 1;
+
+    if (t.isFraud) {
+      buckets[h].fraud += 1;
+    }
   });
+
+  return buckets;
+}, [transactions]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
       <ChartCard title="Live Risk Score" subtitle="Recent transactions">
         <ResponsiveContainer width="100%" height={220}>
-          <AreaChart data={riskData}>
+         <AreaChart
+  key={transactions.length}
+  data={riskData}
+>
             <defs>
               <linearGradient id="riskGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
@@ -74,7 +106,8 @@ export function ChartsDashboard({ transactions }: Props) {
 
       <ChartCard title="Confidence Trend" subtitle="ML model confidence">
         <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={riskData}>
+          <LineChart  key={transactions.length}
+  data={riskData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="idx" stroke="hsl(var(--muted-foreground))" fontSize={11} />
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} domain={[0, 100]} />
@@ -86,8 +119,8 @@ export function ChartsDashboard({ transactions }: Props) {
 
       <ChartCard title="Safe vs Fraud" subtitle="Distribution">
         <ResponsiveContainer width="100%" height={220}>
-          <PieChart>
-            <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={4} isAnimationActive animationDuration={600}>
+          <PieChart key={transactions.length} >
+            <Pie  dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={4} isAnimationActive animationDuration={600}>
               {pieData.map((entry, i) => (
                 <Cell key={i} fill={entry.color} />
               ))}
@@ -100,7 +133,7 @@ export function ChartsDashboard({ transactions }: Props) {
 
       <ChartCard title="Recent Amounts" subtitle="Last 10 transactions">
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={amountData}>
+          <BarChart key={transactions.length} data={hourBuckets}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="idx" stroke="hsl(var(--muted-foreground))" fontSize={11} />
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />

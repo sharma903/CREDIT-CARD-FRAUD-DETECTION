@@ -350,13 +350,13 @@ console.log("Blocked list:", localStorage.getItem("blockedCards"));
   body: JSON.stringify(tx),
 }).catch(err => console.log("Save error:", err));
 
+
+setTransactions((prev) => [tx, ...prev]);   // 🔥 THIS FIXES YOUR GRAPH
+setLastResult(tx);                          // (optional but good)
+
      
-    
-
-    
-
-    // ✅ SAVE TO LOCAL STORAGE (VERY IMPORTANT)
-const updatedHistory = [tx , ...transactions];
+  // ✅ SAVE TO LOCAL STORAGE (VERY IMPORTANT)
+const updatedHistory = [tx, ...transactions];
 localStorage.setItem("transactions", JSON.stringify(updatedHistory));
 
     if (tx.isFraud) {
