@@ -289,6 +289,7 @@ const history = transactions;
 const prediction = analyzeWithHistory(tx, history);
 
 // 🔥 UPDATE RISK SCORE
+// 🔥 UPDATE RISK SCORE
 tx.riskScore += Math.min(prediction.extraRisk, 15);
 tx.reasons = [...tx.reasons, ...prediction.reasons];
 
@@ -383,6 +384,13 @@ console.log("Blocked list:", localStorage.getItem("blockedCards"));
   body: JSON.stringify(tx),
 }).catch(err => console.log("Save error:", err));
 
+const updatedTx = {
+  ...tx,
+  riskScore:
+    Number(tx.riskScore) +
+    Number(Math.min(prediction.extraRisk, 15)),
+  reasons: [...tx.reasons, ...prediction.reasons],
+};
 
 setTransactions((prev) => [tx, ...prev]);   // 🔥 THIS FIXES YOUR GRAPH
 setLastResult(tx);                          // (optional but good)

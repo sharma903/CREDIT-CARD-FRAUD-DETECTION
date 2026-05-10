@@ -22,24 +22,23 @@ const TOOLTIP_STYLE = {
 export function ChartsDashboard({ transactions }: Props) {
   // Risk score over time (last 20)
   const riskData = useMemo(() => {
-  return transactions
+  return [...transactions]
     .slice(0, 20)
     .reverse()
     .map((t, i) => ({
       idx: i + 1,
-      risk: t.riskScore,
-      confidence: t.confidence,
+      risk: Number(t.riskScore),
+      confidence: Number(t.confidence),
     }));
 }, [transactions]);
 
 const pieData = useMemo(() => {
-  const fraudCount = transactions.filter((t) => t.isFraud).length;
-  const safeCount = transactions.length - fraudCount;
+  const fraudCount = transactions.filter(t => t.isFraud).length;
 
   return [
     {
       name: "Safe",
-      value: safeCount,
+      value: transactions.length - fraudCount,
       color: "hsl(var(--success))",
     },
     {
@@ -51,13 +50,13 @@ const pieData = useMemo(() => {
 }, [transactions]);
 
 const amountData = useMemo(() => {
-  return transactions
+  return [...transactions]
     .slice(0, 10)
     .reverse()
     .map((t, i) => ({
       idx: `T${i + 1}`,
-      amount: t.amount,
-      fraud: t.isFraud,
+      amount: Number(t.amount),
+      fraud: Boolean(t.isFraud),
     }));
 }, [transactions]);
 
@@ -87,7 +86,7 @@ const amountData = useMemo(() => {
       <ChartCard title="Live Risk Score" subtitle="Recent transactions">
         <ResponsiveContainer width="100%" height={220}>
          <AreaChart
-  key={transactions.length}
+  
   data={riskData}
 >
             <defs>
@@ -107,36 +106,58 @@ const amountData = useMemo(() => {
 
       <ChartCard title="Confidence Trend" subtitle="ML model confidence">
         <ResponsiveContainer width="100%" height={220}>
-          <LineChart  key={transactions.length}
-  data={riskData}>
+         <LineChart
+              key={`confidence-${transactions.length}-${Date.now()}`}
+              data={[...riskData]}
+            >
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="idx" stroke="hsl(var(--muted-foreground))" fontSize={11} />
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} domain={[0, 100]} />
             <Tooltip {...TOOLTIP_STYLE} />
-            <Line type="monotone" dataKey="confidence" stroke="hsl(var(--primary-glow))" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--primary-glow))" }} isAnimationActive animationDuration={600} />
+            <Line key={`line-${transactions.length}`} type="monotone" dataKey="confidence" stroke="hsl(var(--primary-glow))" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--primary-glow))" }} isAnimationActive animationDuration={600} />
           </LineChart>
         </ResponsiveContainer>
       </ChartCard>
 
       <ChartCard title="Safe vs Fraud" subtitle="Distribution">
         <ResponsiveContainer width="100%" height={220}>
-          <PieChart key={transactions.length} >
-            <Pie  data={pieData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={4} isAnimationActive animationDuration={600}>
-              {pieData.map((entry, i) => (
-                <Cell key={i} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip {...TOOLTIP_STYLE} />
-            <Legend wrapperStyle={{ fontSize: "12px", color: "hsl(var(--muted-foreground))" }} />
-          </PieChart>
+          <PieChart key={`pie-${transactions.length}-${Date.now()}`}>
+                  <Pie
+                    key={`pie-inner-${transactions.length}`}
+                    data={[...pieData]}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={4}
+                    isAnimationActive={true}
+                    animationDuration={600}
+                  >
+                    {pieData.map((entry, i) => (
+                      <Cell
+                        key={`cell-${i}-${entry.value}`}
+                        fill={entry.color}
+                      />
+                    ))}
+                  </Pie>
+
+                  <Tooltip {...TOOLTIP_STYLE} />
+
+                  <Legend
+                    wrapperStyle={{
+                      fontSize: "12px",
+                      color: "hsl(var(--muted-foreground))",
+                    }}
+                  />
+                </PieChart>
         </ResponsiveContainer>
       </ChartCard>
 
       <ChartCard title="Recent Amounts" subtitle="Last 10 transactions">
   <ResponsiveContainer width="100%" height={220}>
     <BarChart
-      key={transactions.length}
-      data={amountData}
+     
+      data={[...amountData]}
     >
       <CartesianGrid
         strokeDasharray="3 3"
@@ -157,6 +178,7 @@ const amountData = useMemo(() => {
       <Tooltip {...TOOLTIP_STYLE} />
 
       <Bar
+        key={`bar-${transactions.length}`}
         dataKey="amount"
         radius={[6, 6, 0, 0]}
         isAnimationActive
@@ -164,7 +186,7 @@ const amountData = useMemo(() => {
       >
         {amountData.map((d, i) => (
           <Cell
-            key={i}
+            key={`${i}-${d.amount}-${d.fraud}`}
             fill={
               d.fraud
                 ? "hsl(var(--destructive))"
