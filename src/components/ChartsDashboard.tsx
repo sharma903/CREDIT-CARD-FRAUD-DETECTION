@@ -3,6 +3,7 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, Line
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 
+
 interface Props {
   transactions: Transaction[];
 }
@@ -120,7 +121,7 @@ const amountData = useMemo(() => {
       <ChartCard title="Safe vs Fraud" subtitle="Distribution">
         <ResponsiveContainer width="100%" height={220}>
           <PieChart key={transactions.length} >
-            <Pie  dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={4} isAnimationActive animationDuration={600}>
+            <Pie  data={pieData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={4} isAnimationActive animationDuration={600}>
               {pieData.map((entry, i) => (
                 <Cell key={i} fill={entry.color} />
               ))}
@@ -132,20 +133,49 @@ const amountData = useMemo(() => {
       </ChartCard>
 
       <ChartCard title="Recent Amounts" subtitle="Last 10 transactions">
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart key={transactions.length} data={hourBuckets}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="idx" stroke="hsl(var(--muted-foreground))" fontSize={11} />
-            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />
-            <Tooltip {...TOOLTIP_STYLE} />
-            <Bar dataKey="amount" radius={[6, 6, 0, 0]} isAnimationActive animationDuration={600}>
-              {amountData.map((d, i) => (
-                <Cell key={i} fill={d.fraud ? "hsl(var(--destructive))" : "hsl(var(--primary))"} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartCard>
+  <ResponsiveContainer width="100%" height={220}>
+    <BarChart
+      key={transactions.length}
+      data={amountData}
+    >
+      <CartesianGrid
+        strokeDasharray="3 3"
+        stroke="hsl(var(--border))"
+      />
+
+      <XAxis
+        dataKey="idx"
+        stroke="hsl(var(--muted-foreground))"
+        fontSize={11}
+      />
+
+      <YAxis
+        stroke="hsl(var(--muted-foreground))"
+        fontSize={11}
+      />
+
+      <Tooltip {...TOOLTIP_STYLE} />
+
+      <Bar
+        dataKey="amount"
+        radius={[6, 6, 0, 0]}
+        isAnimationActive
+        animationDuration={600}
+      >
+        {amountData.map((d, i) => (
+          <Cell
+            key={i}
+            fill={
+              d.fraud
+                ? "hsl(var(--destructive))"
+                : "hsl(var(--primary))"
+            }
+          />
+        ))}
+      </Bar>
+    </BarChart>
+  </ResponsiveContainer>
+</ChartCard>  
 
       <ChartCard title="Activity by Hour" subtitle="24-hour distribution" wide>
         <ResponsiveContainer width="100%" height={220}>

@@ -1,50 +1,27 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import joblib
+import pandas as pd
 
 app = Flask(__name__)
+CORS(app)
 
-model = joblib.load("model.pkl")
+# Load trained model
+model = joblib.load("fraud_model.pkl")
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    data = request.json["features"]
+    data = request.json
 
-    pred = model.predict([data])[0]
-    prob = model.predict_proba([data])[0][1]
+    df = pd.DataFrame([data])
+
+    prediction = model.predict(df)[0]
+    probability = model.predict_proba(df)[0][1]
 
     return jsonify({
-        "fraud": int(pred),
-        "riskScore": float(prob * 100)
+        "isFraud": bool(prediction),
+        "confidence": round(probability * 100, 2)
     })
 
-app.run(port=5001)
-
-@app.route("/api/auth/login", methods=["POST"])
-def login():
-    data = request.json
-    email = data.get("email")
-    password = data.get("password")
-
-    # 🔥 ADMIN LOGIN
-    if email == "admin@gmail.com" and password == "123456":
-        return jsonify({
-            "token": "admin-token",
-            "user": {
-                "name": "Bank Manager",
-                "email": email,
-                "role": "admin"   # ✅ IMPORTANT
-            }
-        })
-
-    # 🔥 EMPLOYEE LOGIN
-    elif email == "employee@gmail.com" and password == "123456":
-        return jsonify({
-            "token": "emp-token",
-            "user": {
-                "name": "Bank Employee",
-                "email": email,
-                "role": "employee"   # ✅ IMPORTANT
-            }
-        })
-
-    return jsonify({"error": "Invalid credentials"}), 401
+if __name__ == "__main__":
+    app.run(port=5001, debug=True)
