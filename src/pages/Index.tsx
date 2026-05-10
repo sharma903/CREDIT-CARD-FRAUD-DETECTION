@@ -115,9 +115,9 @@ function handleUnblock(last4: string) {
 
   const updated = blockedCards.filter((b) => b.last4 !== last4);
 
-  setBlockedCards(updated);
+ 
   localStorage.setItem("blockedCards", JSON.stringify(updated));
-
+   setBlockedCards(updated);
   toast.success("Card unblocked");
 }
 
@@ -156,9 +156,23 @@ localStorage.setItem("user", JSON.stringify({
 
   // 🔒 CHECK BLOCKED CARDS
 function isCardBlocked(cardNumber: string) {
-  const last4 = cardNumber.slice(-4);
-  const blocked = JSON.parse(localStorage.getItem("blockedCards") || "[]");
-  return blocked.some((b: any) => b.last4 === last4);
+  const last4 = cardNumber.slice(-4).trim();
+
+  // check state FIRST
+  const existsInState = blockedCards.some(
+    (b: any) => String(b.last4).trim() === last4
+  );
+
+  if (existsInState) return true;
+
+  // fallback localStorage
+  const blocked = JSON.parse(
+    localStorage.getItem("blockedCards") || "[]"
+  );
+
+  return blocked.some(
+    (b: any) => String(b.last4).trim() === last4
+  );
 }
 
 function handleBlockCard(tx: any) {
@@ -222,10 +236,20 @@ const updated = [
   function handleSubmit(data: TransactionFormData) {
 
      // 🔒 MUST BE FIRST
-  if (isCardBlocked(data.cardNumber)) {
-    toast.error("🚫 This card is BLOCKED by bank");
-    return;
-  }
+  const last4 = String(data.cardNumber).slice(-4).trim();
+
+const blockedNow = JSON.parse(
+  localStorage.getItem("blockedCards") || "[]"
+);
+
+const alreadyBlocked = blockedNow.some(
+  (b: any) => String(b.last4).trim() === last4
+);
+
+if (alreadyBlocked) {
+  toast.error("🚫 Card already BLOCKED");
+  return;
+}
 
   // rest of logic...
 
@@ -242,7 +266,15 @@ const updated = [
 
     const ts = data.timestamp;
     const recent = transactions.map((t) => t.timestamp);
-    const result = analyzeFraud(data.amount, merchant, ts, recent, data.location);
+    const result = analyzeFraud(
+  data.amount,
+  merchant,
+  ts,
+  recent,
+  data.location,
+  transactions,
+  data.cardNumber
+);
  
    const tx: Transaction = {
           id: crypto.randomUUID(),
@@ -276,10 +308,10 @@ if (tx.riskScore >= 80) {
   tx.isFraud = true;
 
   // ✅ ADD HERE (after tx is ready)
-setTransactions((prev) => [tx, ...prev]);
+// setTransactions((prev) => [tx, ...prev]);
 setLastResult(tx);
 
-  const last4 = data.cardNumber.slice(-4);
+  const last4 = String(data.cardNumber).slice(-4).trim();
 
   setBlockedCards(prev => {
     if (prev.find(b => b.last4 === last4)) return prev;
@@ -333,6 +365,14 @@ setLastResult(tx);
       merchant: tx.merchantName
     }),
   }).catch(err => console.log("Auto email error:", err));
+
+  fetch("http://localhost:5000/api/transactions/add", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(tx),
+}).catch(err => console.log("Save error:", err));
 
   toast.error("⚠️ High Risk Detected - Card Auto Blocked!");
   return;

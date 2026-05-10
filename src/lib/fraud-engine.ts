@@ -70,13 +70,19 @@ export const MAX_AMOUNT = 50000;
 function isSafeHour(hour: number): boolean {
   return hour >= 5 && hour <= 23;
 }
-
+function isIndianLocation(location: string): boolean {
+  return /india|mumbai|delhi|kolkata|chennai|bangalore|hyderabad|pune|nagpur|nashik|new delhi|dwarka|rohini|Banglore|mysore|maharastra|Maharashtra|Mumbai|Pune|Nagpur|Nashik|New Delhi|Dwarka|Rohini|Karnataka|Bangalore|Mysore|Hubli|Tamilnadu|Chennai|Coimbatore|Madurai|Gujarat|Ahmedabad|Surat|Vadodara|Chhattisgarh|Raipur|Bilaspur|Durg|Bhilai|UttarPradesh|Lucknow|Kanpur|Noida|Varanasi/i.test(
+    location
+  );
+}
 export function analyzeFraud(
   amount: number,
   merchant: Merchant,
   timestamp: Date,
   recentTimestamps: Date[],
-  location: string
+  location: string,
+  transactions: Transaction[],
+  cardNumber: string
 ): FraudResult {
   const reasons: string[] = [];
   let riskScore = 10; // base
@@ -84,6 +90,32 @@ export function analyzeFraud(
 
   const hour = timestamp.getHours();
   const safe = isSafeHour(hour);
+  // 🌍 FOREIGN LOCATION DETECTION
+// 🌍 LOCATION FRAUD DETECTION
+const isForeign = !isIndianLocation(location);
+
+const previousForeignTx = transactions.filter(
+  (t) =>
+    !isIndianLocation(t.location) &&
+    t.cardNumberMasked.includes(cardNumber.slice(-4))
+);
+
+if (isForeign) {
+  riskScore += 25;
+  confidence += 20;
+
+  reasons.push("Foreign transaction detected");
+
+  // SECOND foreign transaction
+  if (previousForeignTx.length >= 1) {
+    riskScore += 70;
+    confidence += 40;
+
+    reasons.push("Card used multiple times outside India");
+  }
+}
+
+
 
   // Time-based rule
   if (!safe) {
@@ -99,9 +131,11 @@ export function analyzeFraud(
     // 🔥 NEW RULE: 2 HIGH VALUE TRANSACTIONS (within 2 minutes)
   const twoMinAgo = timestamp.getTime() - 120_000;
 
-  const recentHighTx = recentTimestamps.filter((t: any) => {
-    return t.getTime() >= twoMinAgo;
-  }).length;
+const recentHighTx = transactions.filter(
+  (t) =>
+    t.timestamp.getTime() >= twoMinAgo &&
+    t.amount > 20000
+).length;
 
   if (amount > 20000 && recentHighTx >= 1) {
     riskScore += 50;
@@ -151,6 +185,24 @@ export function analyzeFraud(
     confidence += 5;
     reasons.push(`Unusual location: ${location}`);
   }
+  // 🌍 LOCATION CHANGE DETECTION
+
+const hadIndianTransaction = transactions.some(
+  (t) =>
+    t.cardNumberMasked.includes(cardNumber.slice(-4)) &&
+    isIndianLocation(t.location)
+);
+
+const currentIsForeign = !isIndianLocation(location);
+
+if (hadIndianTransaction && currentIsForeign) {
+  riskScore += 70;
+  confidence += 35;
+
+  reasons.push(
+    "🚨 Sudden foreign transaction detected after Indian usage"
+  );
+}
 
   riskScore = Math.min(100, Math.max(0, riskScore));
   confidence = Math.min(99, Math.max(20, confidence));
@@ -163,9 +215,10 @@ export function analyzeFraud(
   // 🔥 FINAL FRAUD LOGIC (BEST VERSION)
 
 const isFraud =
-  riskScore >= 70 ||          // strong threshold
-  !safe ||                    // unsafe hour
-  (amount > 20000 && recentHighTx >= 1); // high-value repeat
+  riskScore >= 70 ||
+  !safe ||
+  (amount > 20000 && recentHighTx >= 1) ||
+  (isForeign && previousForeignTx.length >= 1);
 
   return { riskScore, isFraud, confidence, reasons };
 }

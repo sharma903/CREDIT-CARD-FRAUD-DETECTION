@@ -105,7 +105,7 @@ export function TransactionHistory({
             </button>
           )}
 
-{role === "admin" && t.isBlocked && (
+{/* {role === "admin" && t.isBlocked && (
   <button
     onClick={() => onUnblock(t.cardNumberMasked.slice(-4))}
     className="
@@ -126,7 +126,7 @@ export function TransactionHistory({
   >
     Unblock Card
   </button>
-)}
+)} */}
             </div>
           </motion.div>
         ))}
