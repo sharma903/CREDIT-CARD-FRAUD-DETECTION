@@ -1,3 +1,6 @@
+
+import { INDIA_LOCATIONS } from "./India-locations";
+
 export type Merchant = {
   name: string;
   category: string;
@@ -70,11 +73,60 @@ export const MAX_AMOUNT = 50000;
 function isSafeHour(hour: number): boolean {
   return hour >= 5 && hour <= 23;
 }
+
 function isIndianLocation(location: string): boolean {
-  return /india|mumbai|delhi|kolkata|chennai|bangalore|hyderabad|pune|nagpur|nashik|new delhi|dwarka|rohini|Banglore|mysore|maharastra|Maharashtra|Mumbai|Pune|Nagpur|Nashik|New Delhi|Dwarka|Rohini|Karnataka|Bangalore|Mysore|Hubli|Tamilnadu|Chennai|Coimbatore|Madurai|Gujarat|Ahmedabad|Surat|Vadodara|Chhattisgarh|Raipur|Bilaspur|Durg|Bhilai|UttarPradesh|Lucknow|Kanpur|Noida|Varanasi/i.test(
-    location
+  const normalized = location.toLowerCase().trim();
+
+  return INDIA_LOCATIONS.some((place) =>
+    normalized.includes(place.toLowerCase())
   );
 }
+// function isIndianLocation(location: string): boolean {
+//   const normalized = location.toLowerCase();
+
+//   const keywords = [
+//     "India",
+//     "madhya pradesh",
+//     "maharashtra",
+//     "karnataka",
+//     "tamil nadu",
+//     "gujarat",
+//     "rajasthan",
+//     "uttar pradesh",
+//     "bihar",
+//     "west bengal",
+//     "chhattisgarh",
+//     "punjab",
+//     "haryana",
+//     "mumbai",
+//     "delhi",
+//     "new delhi",
+//     "bangalore",
+//     "bengaluru",
+//     "chennai",
+//     "kolkata",
+//     "hyderabad",
+//     "pune",
+//     "bhopal",
+//     "indore",
+//     "lucknow",
+//     "noida",
+//     "kanpur",
+//     "surat",
+//     "ahmedabad",
+//     "raipur",
+//   ];
+
+//   // direct match
+//   if (keywords.some(k => normalized.includes(k))) return true;
+
+//   // fallback rule: if user explicitly writes "mp", "mh", etc
+//   const stateShortCodes = ["mp", "mh", "ka", "tn", "gj", "up"];
+
+//   return stateShortCodes.some(code =>
+//     normalized.split(" ").includes(code)
+//   );
+// }
 export function analyzeFraud(
   amount: number,
   merchant: Merchant,
@@ -83,7 +135,7 @@ export function analyzeFraud(
   location: string,
   transactions: Transaction[],
   cardNumber: string
-): FraudResult {
+): FraudResult{
   const reasons: string[] = [];
   let riskScore = 10; // base
   let confidence = 50;
@@ -93,12 +145,18 @@ export function analyzeFraud(
   // 🌍 FOREIGN LOCATION DETECTION
 // 🌍 LOCATION FRAUD DETECTION
 const isForeign = !isIndianLocation(location);
+const previousForeignTx: Transaction[] = [];
 
-const previousForeignTx = transactions.filter(
-  (t) =>
-    !isIndianLocation(t.location) &&
+for (const t of transactions) {
+ const prevIsForeign = !isIndianLocation(t.location);
+
+  if (
+    prevIsForeign &&
     t.cardNumberMasked.includes(cardNumber.slice(-4))
-);
+  ) {
+    previousForeignTx.push(t);
+  }
+}
 
 if (isForeign) {
   riskScore += 25;
@@ -187,13 +245,21 @@ const recentHighTx = transactions.filter(
   }
   // 🌍 LOCATION CHANGE DETECTION
 
-const hadIndianTransaction = transactions.some(
-  (t) =>
-    t.cardNumberMasked.includes(cardNumber.slice(-4)) &&
-    isIndianLocation(t.location)
-);
+let hadIndianTransaction = false;
 
-const currentIsForeign = !isIndianLocation(location);
+for (const t of transactions) {
+const wasIndian = isIndianLocation(t.location);
+
+  if (
+    t.cardNumberMasked.includes(cardNumber.slice(-4)) &&
+    wasIndian
+  ) {
+    hadIndianTransaction = true;
+    break;
+  }
+}
+
+const currentIsForeign = isForeign;
 
 if (hadIndianTransaction && currentIsForeign) {
   riskScore += 70;
@@ -216,7 +282,7 @@ if (hadIndianTransaction && currentIsForeign) {
 
 const isFraud =
   riskScore >= 70 ||
-  !safe ||
+  (!safe && amount > 10000) ||
   (amount > 20000 && recentHighTx >= 1) ||
   (isForeign && previousForeignTx.length >= 1);
 

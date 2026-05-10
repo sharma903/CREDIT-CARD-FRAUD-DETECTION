@@ -171,7 +171,7 @@ function isCardBlocked(cardNumber: string) {
   );
 
   return blocked.some(
-    (b: any) => String(b.last4).trim() === last4
+    (b: any) => String(b.last4).slice(-4).trim() === last4
   );
 }
 
@@ -233,40 +233,33 @@ const updated = [
 }
 
 
-  function handleSubmit(data: TransactionFormData) {
+  async function handleSubmit(data: TransactionFormData) {
 
-     // 🔒 MUST BE FIRST
-  const last4 = String(data.cardNumber).slice(-4).trim();
+  const last4 = data.cardNumber.slice(-4).trim();
 
-const blockedNow = JSON.parse(
-  localStorage.getItem("blockedCards") || "[]"
-);
+  const blockedNow = JSON.parse(localStorage.getItem("blockedCards") || "[]");
 
-const alreadyBlocked = blockedNow.some(
-  (b: any) => String(b.last4).trim() === last4
-);
+  const isBlocked = blockedNow.some(
+    (b: any) => String(b.last4).slice(-4).trim() === last4
+  );
 
-if (alreadyBlocked) {
-  toast.error("🚫 Card already BLOCKED");
-  return;
-}
-
-  // rest of logic...
-
- 
+  if (isBlocked) {
+    toast.error("🚫 Card already BLOCKED");
+    return;
+  }
 
   const merchant = MERCHANTS.find((m) => m.name === data.merchantName);
 
   if (!merchant) {
-  toast.error("Invalid merchant");
-  return;
-}
+    toast.error("Invalid merchant");
+    return;
+  }
 
   
 
     const ts = data.timestamp;
     const recent = transactions.map((t) => t.timestamp);
-    const result = analyzeFraud(
+    const result = await analyzeFraud(
   data.amount,
   merchant,
   ts,
@@ -308,7 +301,7 @@ if (tx.riskScore >= 80) {
   tx.isFraud = true;
 
   // ✅ ADD HERE (after tx is ready)
-// setTransactions((prev) => [tx, ...prev]);
+setTransactions((prev) => [tx, ...prev]);
 setLastResult(tx);
 
   const last4 = String(data.cardNumber).slice(-4).trim();

@@ -28,7 +28,7 @@ export function TransactionHistory({
       <AnimatePresence>
         {transactions.map((t) => (
           <motion.div
-            key={t.id}
+            key={`${t.cardNumberMasked}-${t.timestamp}`}
             layout
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
